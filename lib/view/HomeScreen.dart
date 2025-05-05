@@ -13,6 +13,7 @@ class HomeScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Padding(padding: EdgeInsets.only(top: 30)),
               // Header
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -26,7 +27,7 @@ class HomeScreen extends StatelessWidget {
                   Icon(Icons.qr_code_scanner),
                 ],
               ),
-              SizedBox(height: 16),
+              SizedBox(height: 30),
               Text('Hello,', style: TextStyle(fontSize: 22)),
               Text(
                 'Sarah!',
@@ -39,6 +40,14 @@ class HomeScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.5),
+                      blurRadius: 5,
+                      spreadRadius: 2,
+                      offset: const Offset(0, 4)
+                    )
+                  ]
                 ),
                 child: Row(
                   children: [
@@ -56,7 +65,7 @@ class HomeScreen extends StatelessWidget {
                             style: TextStyle(fontSize: 17),
                           ),
                         ],
-                      ),
+                      )                      
                     ),
                     SizedBox(width: 10),
                     Image.asset('assets/img/nurse.png', width: 150, height: 150),
@@ -66,9 +75,9 @@ class HomeScreen extends StatelessWidget {
               SizedBox(height: 20),
               Text(
                 'What do you need?',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
               ),
-              SizedBox(height: 12),
+              SizedBox(height: 30),
               // Menu Grid
               Expanded(
                 child: GridView.count(
@@ -97,6 +106,14 @@ class HomeScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.5),
+            blurRadius: 5,
+            spreadRadius: 2,
+            offset: const Offset(0, 4)
+          )
+        ]
       ),
       child: InkWell(
         onTap: () {
@@ -106,11 +123,11 @@ class HomeScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 30, color: Colors.blue),
+            Icon(icon, size: 50, color: Colors.blue),
             SizedBox(height: 8),
             Text(
               label,
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
             ),
           ],
         ),

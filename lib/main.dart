@@ -5,7 +5,7 @@ import 'firebase_options.dart';
 import 'package:hajjhealth/view/navbar_app.dart';
 import 'package:hajjhealth/view/signup.dart';
 import 'package:hajjhealth/view/login.dart';
-import 'package:hajjhealth/view/splash.dart';
+import 'package:hajjhealth/view/splash/screen.dart';
 import 'package:hajjhealth/view/Home/meditory.dart';
 import 'package:hajjhealth/view/Home/mediloc.dart';
 import 'package:hajjhealth/view/Home/medibot.dart';

@@ -149,8 +149,8 @@ class HistoryScreen extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(20),
-        clipBehavior: Clip.antiAlias,
-        elevation: 0,
+        clipBehavior: Clip.none,
+        elevation: 3,
         child: InkWell(
           onTap: onTap,
           splashColor: Colors.blue.withOpacity(0.1),
@@ -163,14 +163,6 @@ class HistoryScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.5), // Warna shadow lebih gelap atau terang
-                    spreadRadius: 10, // Lebar penyebaran shadow
-                    blurRadius: 30, // Kekuatan blur untuk efek bayangan
-                    offset: const Offset(0, 8), // Posisi shadow (x, y)
-                  ),
-                ],
               ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

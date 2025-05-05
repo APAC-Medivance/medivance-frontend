@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hajjhealth/view/navbar_app.dart';
+import 'package:hajjhealth/view/users/navbar_app.dart';
 
 class SplashScreen extends StatefulWidget {
   @override

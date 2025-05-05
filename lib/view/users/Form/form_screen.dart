@@ -1,8 +1,8 @@
 
 import 'package:flutter/material.dart';
-import 'package:hajjhealth/view/Form/past_history.dart';
-import 'package:hajjhealth/view/Form/family_history.dart';
-import 'package:hajjhealth/view/Form/social_history.dart';  
+import 'package:hajjhealth/view/users/Form/past_history.dart';
+import 'package:hajjhealth/view/users/Form/family_history.dart';
+import 'package:hajjhealth/view/users/Form/social_history.dart';  
 
 class FormScreen extends StatefulWidget {
   final String formType;

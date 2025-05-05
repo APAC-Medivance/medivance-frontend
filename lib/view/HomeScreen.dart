@@ -24,7 +24,7 @@ class HomeScreen extends StatelessWidget {
                     ),
                     radius: 20,
                   ),
-                  Icon(Icons.qr_code_scanner),
+                  Icon(Icons.logout),
                 ],
               ),
               SizedBox(height: 30),

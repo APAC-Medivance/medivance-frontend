@@ -95,10 +95,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   IconButton(
                     icon: const Icon(Icons.close, color: Colors.black54),
                     onPressed: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => NavbarApp()),
-                      );
+                      Navigator.of(context, rootNavigator: true).pushNamed("/home");
                     },
                   ),
                 ],

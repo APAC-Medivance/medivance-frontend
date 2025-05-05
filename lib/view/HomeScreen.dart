@@ -76,12 +76,12 @@ class HomeScreen extends StatelessWidget {
                   mainAxisSpacing: 16,
                   crossAxisSpacing: 16,
                   children: [
-                    buildMenuItem(Icons.assignment, "MediTory"),
-                    buildMenuItem(Icons.location_on, "MediLoc"),
-                    buildMenuItem(Icons.chat_bubble_outline, "MediBot"),
-                    buildMenuItem(Icons.call, "MediCall"),
-                    buildMenuItem(Icons.card_giftcard, "MediHajj"),
-                    buildMenuItem(Icons.info_outline, "About"),
+                    buildMenuItem(context, Icons.assignment, "MediTory", "/meditory"),
+                    buildMenuItem(context, Icons.location_on, "MediLoc", "/mediloc"),
+                    buildMenuItem(context, Icons.chat_bubble_outline, "MediBot", "/medibot"),
+                    buildMenuItem(context, Icons.call, "MediCall", "/medicall"),
+                    buildMenuItem(context, Icons.card_giftcard, "MediHajj", "/medihajj"),
+                    buildMenuItem(context, Icons.info_outline, "About", "/about"),
                   ],
                 ),
               ),
@@ -92,7 +92,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget buildMenuItem(IconData icon, String label) {
+  Widget buildMenuItem(BuildContext context, IconData icon, String label, String route) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -100,8 +100,9 @@ class HomeScreen extends StatelessWidget {
       ),
       child: InkWell(
         onTap: () {
-          // TODO: add navigation
+          Navigator.pushNamed(context, route);
         },
+        borderRadius: BorderRadius.circular(16),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [

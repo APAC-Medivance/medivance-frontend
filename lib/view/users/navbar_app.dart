@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:hajjhealth/view/HomeScreen.dart';
-import 'package:hajjhealth/view/statistic.dart';
-import 'package:hajjhealth/view/history.dart';
-import 'package:hajjhealth/view/profile.dart';
+import 'package:hajjhealth/view/users/HomeScreen.dart';
+import 'package:hajjhealth/view/users/statistic.dart';
+import 'package:hajjhealth/view/users/history.dart';
+import 'package:hajjhealth/view/users/profile.dart';
 
 class NavbarApp extends StatefulWidget {
   @override
@@ -33,6 +33,7 @@ class _NavbarAppState extends State<NavbarApp> {
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
         type: BottomNavigationBarType.fixed,
+        backgroundColor: Colors.white,
         selectedItemColor: Colors.blue,
         unselectedItemColor: Colors.grey,
         items: const [

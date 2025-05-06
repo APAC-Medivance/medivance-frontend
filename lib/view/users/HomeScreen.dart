@@ -13,6 +13,7 @@ class HomeScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Padding(padding: EdgeInsets.only(top: 30)),
               // Header
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -23,10 +24,10 @@ class HomeScreen extends StatelessWidget {
                     ),
                     radius: 20,
                   ),
-                  Icon(Icons.qr_code_scanner),
+                  Icon(Icons.logout),
                 ],
               ),
-              SizedBox(height: 16),
+              SizedBox(height: 30),
               Text('Hello,', style: TextStyle(fontSize: 22)),
               Text(
                 'Sarah!',
@@ -39,6 +40,14 @@ class HomeScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.5),
+                      blurRadius: 5,
+                      spreadRadius: 2,
+                      offset: const Offset(0, 4)
+                    )
+                  ]
                 ),
                 child: Row(
                   children: [
@@ -56,7 +65,7 @@ class HomeScreen extends StatelessWidget {
                             style: TextStyle(fontSize: 17),
                           ),
                         ],
-                      ),
+                      )                      
                     ),
                     SizedBox(width: 10),
                     Image.asset('assets/img/nurse.png', width: 150, height: 150),
@@ -66,9 +75,9 @@ class HomeScreen extends StatelessWidget {
               SizedBox(height: 20),
               Text(
                 'What do you need?',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
               ),
-              SizedBox(height: 12),
+              SizedBox(height: 30),
               // Menu Grid
               Expanded(
                 child: GridView.count(
@@ -76,12 +85,12 @@ class HomeScreen extends StatelessWidget {
                   mainAxisSpacing: 16,
                   crossAxisSpacing: 16,
                   children: [
-                    buildMenuItem(Icons.assignment, "MediTory"),
-                    buildMenuItem(Icons.location_on, "MediLoc"),
-                    buildMenuItem(Icons.chat_bubble_outline, "MediBot"),
-                    buildMenuItem(Icons.call, "MediCall"),
-                    buildMenuItem(Icons.card_giftcard, "MediHajj"),
-                    buildMenuItem(Icons.info_outline, "About"),
+                    buildMenuItem(context, Icons.assignment, "MediTory", "/meditory"),
+                    buildMenuItem(context, Icons.location_on, "MediLoc", "/mediloc"),
+                    buildMenuItem(context, Icons.chat_bubble_outline, "MediBot", "/medibot"),
+                    buildMenuItem(context, Icons.call, "MediCall", "/medicall"),
+                    buildMenuItem(context, Icons.card_giftcard, "MediHajj", "/medihajj"),
+                    buildMenuItem(context, Icons.info_outline, "About", "/about"),
                   ],
                 ),
               ),
@@ -92,24 +101,33 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget buildMenuItem(IconData icon, String label) {
+  Widget buildMenuItem(BuildContext context, IconData icon, String label, String route) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.5),
+            blurRadius: 5,
+            spreadRadius: 2,
+            offset: const Offset(0, 4)
+          )
+        ]
       ),
       child: InkWell(
         onTap: () {
-          // TODO: add navigation
+          Navigator.pushNamed(context, route);
         },
+        borderRadius: BorderRadius.circular(16),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 30, color: Colors.blue),
+            Icon(icon, size: 50, color: Colors.blue),
             SizedBox(height: 8),
             Text(
               label,
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
             ),
           ],
         ),

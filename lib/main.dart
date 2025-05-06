@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hajjhealth/view/admin/navbar.dart';
 import 'firebase_options.dart';
 import 'package:hajjhealth/view/users/navbar_app.dart';
 import 'package:hajjhealth/view/users/signup.dart';
@@ -46,6 +47,7 @@ class MedivanceApp extends StatelessWidget {
         '/medicall': (context) => MediCallScreen(),
         '/medihajj': (context) => MediHajjScreen(),
         '/about': (context) => AboutScreen(),
+        '/admin/home': (context) => NavbarRunnerApp()
       },
     );
   }

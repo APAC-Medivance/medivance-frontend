@@ -85,12 +85,12 @@ class AdminHomeScreen extends StatelessWidget {
                   mainAxisSpacing: 16,
                   crossAxisSpacing: 16,
                   children: [
-                    buildMenuItem(context, Icons.assignment, "MediTory", "/meditory"),
-                    buildMenuItem(context, Icons.location_on, "MediLoc", "/mediloc"),
-                    buildMenuItem(context, Icons.chat_bubble_outline, "MediBot", "/medibot"),
-                    buildMenuItem(context, Icons.call, "MediCall", "/medicall"),
-                    buildMenuItem(context, Icons.card_giftcard, "MediHajj", "/medihajj"),
-                    buildMenuItem(context, Icons.info_outline, "About", "/about"),
+                    buildMenuItem(context, Icons.assignment, "MediTory", "/admin/meditory"),
+                    buildMenuItem(context, Icons.manage_history, "Manage", "/admin/management"),
+                    buildMenuItem(context, Icons.chat_bubble_outline, "MediBot", "/admin/medibot"),
+                    buildMenuItem(context, Icons.add_box, "Logistic", "/admin/logistic"),
+                    buildMenuItem(context, Icons.card_giftcard, "MediHajj", "/admin/medihajj"),
+                    buildMenuItem(context, Icons.info_outline, "About", "/admin/about"),
                   ],
                 ),
               ),
@@ -123,11 +123,11 @@ class AdminHomeScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 50, color: Colors.blue),
+            Icon(icon, size: 40, color: Colors.blue),
             SizedBox(height: 8),
             Text(
               label,
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+              style: TextStyle(fontSize: 13.4, fontWeight: FontWeight.w500),
             ),
           ],
         ),

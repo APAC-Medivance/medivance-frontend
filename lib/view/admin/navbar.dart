@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:hajjhealth/view/admin/view/history.dart';
 import 'package:hajjhealth/view/admin/view/home.dart';
+import 'package:hajjhealth/view/admin/view/notifications.dart';
+import 'package:hajjhealth/view/admin/view/profile.dart';
 
-class NavbarApp extends StatefulWidget {
+class NavbarRunnerApp extends StatefulWidget {
   @override
-  _NavbarAppState createState() => _NavbarAppState();
+  _NavbarRunnerAppState createState() => _NavbarRunnerAppState();
 }
 
-class _NavbarAppState extends State<NavbarApp> {
+class _NavbarRunnerAppState extends State<NavbarRunnerApp> {
   int _selectedIndex = 0;
 
   final List<Widget> _screens = [
-    AdminHomeScreen()
-    // StatisticScreen(),
-    // HistoryScreen(),
-    // ProfileScreen(),
+    AdminHomeScreen(),
+    AdminNotificationScreen(),
+    AdminHistoryScreen(),
+    AdminProfileScreen()
   ];
 
   void _onItemTapped(int index) {
@@ -35,7 +38,7 @@ class _NavbarAppState extends State<NavbarApp> {
         unselectedItemColor: Colors.grey,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: 'Statistic'),
+          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Notification'),
           BottomNavigationBarItem(icon: Icon(Icons.history), label: 'History'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],

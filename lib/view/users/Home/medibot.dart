@@ -1,41 +1,78 @@
 import 'package:flutter/material.dart';
 import 'package:hajjhealth/view/users/navbar_app.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_vertexai/firebase_vertexai.dart';
 
 class MediBotScreen extends StatelessWidget {
   const MediBotScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'MediBot',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        fontFamily: 'SF Pro Display',
+    return ProviderScope(
+      // Tambahkan ProviderScope di sini
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'MediBot',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+          fontFamily: 'SF Pro Display',
+        ),
+        home: const ChatScreen(),
       ),
-      home: const ChatScreen(),
     );
   }
 }
 
-class ChatScreen extends StatefulWidget {
+// Provider for managing chat messages
+final chatMessagesProvider =
+    StateNotifierProvider<ChatMessagesNotifier, List<ChatMessage>>((ref) {
+      return ChatMessagesNotifier();
+    });
+
+class ChatMessagesNotifier extends StateNotifier<List<ChatMessage>> {
+  ChatMessagesNotifier() : super([]);
+
+  void addUserMessage(String text) async {
+    final id = DateTime.now().toIso8601String(); // Buat ID unik
+    state = [...state, ChatMessage(id: id, text: text, isUser: true)];
+
+    // Panggil model LLM untuk mendapatkan respons
+    final botResponse = await getBotResponse(text);
+
+    // Tambahkan respons bot ke state
+    addBotResponse(botResponse);
+  }
+
+  Future<String> getBotResponse(String userInput) async {
+    try {
+      // Contoh pemanggilan model LLM (misalnya Firebase Vertex AI)
+      final chatSession =
+          await FirebaseVertexAI.instance
+              .generativeModel(model: 'gemini-2.0-flash')
+              .startChat();
+
+      final response = await chatSession.sendMessage(Content.text(userInput));
+      return response.text ?? "I'm sorry, I couldn't understand that.";
+    } catch (e) {
+      // Tangani error
+      return "I'm sorry, I encountered an error.";
+    }
+  }
+
+  void addBotResponse(String text) {
+    final id = DateTime.now().toIso8601String(); // Buat ID unik
+    state = [...state, ChatMessage(id: id, text: text, isUser: false)];
+  }
+}
+
+class ChatScreen extends ConsumerWidget {
   const ChatScreen({Key? key}) : super(key: key);
 
   @override
-  State<ChatScreen> createState() => _ChatScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final chatMessages = ref.watch(chatMessagesProvider);
+    final TextEditingController _controller = TextEditingController();
 
-class _ChatScreenState extends State<ChatScreen> {
-  final TextEditingController _controller = TextEditingController();
-  final List<ChatMessage> _messages = [
-    ChatMessage(text: "Can you help me?", isUser: true),
-    ChatMessage(text: "Sure! I'm your virtual health assistant. What's your name and age?", isUser: false),
-    ChatMessage(text: "My name is Sarah, I'm 28 years old.", isUser: true),
-    ChatMessage(text: "Nice to meet you, Sarah. Do you have any allergies?", isUser: false),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -43,7 +80,10 @@ class _ChatScreenState extends State<ChatScreen> {
           children: [
             // App bar
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 8.0,
+              ),
               decoration: BoxDecoration(
                 color: Colors.white,
                 boxShadow: [
@@ -63,8 +103,12 @@ class _ChatScreenState extends State<ChatScreen> {
                         backgroundColor: Colors.white,
                         child: Image.asset(
                           'assets/medibot_logo.png',
-                          errorBuilder: (context, error, stackTrace) =>
-                              const Icon(Icons.medical_services, color: Colors.blue, size: 24),
+                          errorBuilder:
+                              (context, error, stackTrace) => const Icon(
+                                Icons.medical_services,
+                                color: Colors.blue,
+                                size: 24,
+                              ),
                         ),
                       ),
                       Positioned(
@@ -95,7 +139,10 @@ class _ChatScreenState extends State<ChatScreen> {
                   IconButton(
                     icon: const Icon(Icons.close, color: Colors.black54),
                     onPressed: () {
-                      Navigator.of(context, rootNavigator: true).pushNamed("/home");
+                      Navigator.of(
+                        context,
+                        rootNavigator: true,
+                      ).pushNamed("/home");
                     },
                   ),
                 ],
@@ -112,32 +159,46 @@ class _ChatScreenState extends State<ChatScreen> {
             Expanded(
               child: ListView.builder(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
-                itemCount: _messages.length,
+                itemCount: chatMessages.length,
                 itemBuilder: (context, index) {
-                  final message = _messages[index];
+                  final message = chatMessages[index];
 
                   return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 16.0),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 4.0,
+                      horizontal: 16.0,
+                    ),
                     child: Row(
                       mainAxisAlignment:
-                          message.isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+                          message.isUser
+                              ? MainAxisAlignment.end
+                              : MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         if (!message.isUser) ...[
                           const CircleAvatar(
                             radius: 14,
                             backgroundColor: Colors.white,
-                            child: Icon(Icons.medical_services, color: Colors.blue, size: 16),
+                            child: Icon(
+                              Icons.medical_services,
+                              color: Colors.blue,
+                              size: 16,
+                            ),
                           ),
                           const SizedBox(width: 8),
                         ],
                         Column(
                           crossAxisAlignment:
-                              message.isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                              message.isUser
+                                  ? CrossAxisAlignment.end
+                                  : CrossAxisAlignment.start,
                           children: [
                             if (!message.isUser)
                               const Padding(
-                                padding: EdgeInsets.only(left: 4.0, bottom: 2.0),
+                                padding: EdgeInsets.only(
+                                  left: 4.0,
+                                  bottom: 2.0,
+                                ),
                                 child: Text(
                                   'Doctor Bot',
                                   style: TextStyle(
@@ -148,17 +209,27 @@ class _ChatScreenState extends State<ChatScreen> {
                               ),
                             Container(
                               constraints: BoxConstraints(
-                                maxWidth: MediaQuery.of(context).size.width * 0.6,
+                                maxWidth:
+                                    MediaQuery.of(context).size.width * 0.6,
                               ),
-                              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16.0,
+                                vertical: 10.0,
+                              ),
                               decoration: BoxDecoration(
-                                color: message.isUser ? Colors.blue[500] : Colors.blue[100],
+                                color:
+                                    message.isUser
+                                        ? Colors.blue[500]
+                                        : Colors.blue[100],
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(
                                 message.text,
                                 style: TextStyle(
-                                  color: message.isUser ? Colors.white : Colors.black87,
+                                  color:
+                                      message.isUser
+                                          ? Colors.white
+                                          : Colors.black87,
                                   fontSize: 14,
                                 ),
                               ),
@@ -181,9 +252,15 @@ class _ChatScreenState extends State<ChatScreen> {
                           CircleAvatar(
                             radius: 14,
                             backgroundColor: Colors.blue,
-                            backgroundImage: const AssetImage('assets/user_avatar.png'),
+                            backgroundImage: const AssetImage(
+                              'assets/user_avatar.png',
+                            ),
                             onBackgroundImageError: (exception, stackTrace) {},
-                            child: const Icon(Icons.person, color: Colors.white, size: 16),
+                            child: const Icon(
+                              Icons.person,
+                              color: Colors.white,
+                              size: 16,
+                            ),
                           ),
                         ],
                       ],
@@ -195,7 +272,10 @@ class _ChatScreenState extends State<ChatScreen> {
 
             // Input area
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 10.0,
+                vertical: 8.0,
+              ),
               decoration: BoxDecoration(
                 color: Colors.white,
                 border: Border(
@@ -210,15 +290,21 @@ class _ChatScreenState extends State<ChatScreen> {
                       decoration: InputDecoration(
                         hintText: 'Ask anything',
                         hintStyle: const TextStyle(color: Colors.grey),
-                        contentPadding:
-                            const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16.0,
+                          vertical: 8.0,
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(25.0),
-                          borderSide: BorderSide(color: Colors.grey.withOpacity(0.3)),
+                          borderSide: BorderSide(
+                            color: Colors.grey.withOpacity(0.3),
+                          ),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(25.0),
-                          borderSide: BorderSide(color: Colors.grey.withOpacity(0.3)),
+                          borderSide: BorderSide(
+                            color: Colors.grey.withOpacity(0.3),
+                          ),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(25.0),
@@ -229,10 +315,10 @@ class _ChatScreenState extends State<ChatScreen> {
                           onPressed: () {
                             final text = _controller.text.trim();
                             if (text.isNotEmpty) {
-                              setState(() {
-                                _messages.add(ChatMessage(text: text, isUser: true));
-                                _controller.clear();
-                              });
+                              ref
+                                  .read(chatMessagesProvider.notifier)
+                                  .addUserMessage(text);
+                              _controller.clear();
                             }
                           },
                         ),
@@ -247,17 +333,12 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
     );
   }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
 }
 
 class ChatMessage {
+  final String id;
   final String text;
   final bool isUser;
 
-  ChatMessage({required this.text, required this.isUser});
+  ChatMessage({required this.id, required this.text, required this.isUser});
 }

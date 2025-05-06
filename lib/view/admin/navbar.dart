@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hajjhealth/view/admin/partials/home.dart';
+import 'package:hajjhealth/view/admin/view/home.dart';
 
 class NavbarApp extends StatefulWidget {
   @override

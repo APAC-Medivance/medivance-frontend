@@ -5,6 +5,7 @@ import 'package:hajjhealth/view/navbar_app.dart';
 import 'package:hajjhealth/view/signup.dart';
 import 'package:hajjhealth/view/login.dart';
 import 'package:hajjhealth/view/splash.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(

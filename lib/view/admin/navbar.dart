@@ -70,7 +70,7 @@ class _NavbarRunnerAppState extends State<NavbarRunnerApp> {
                         '$notificationCount',
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 6,
+                          fontSize: 8,
                         ),
                         textAlign: TextAlign.center,
                       ),

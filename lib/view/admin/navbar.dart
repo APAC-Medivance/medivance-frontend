@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:hajjhealth/view/admin/view/history.dart';
-import 'package:hajjhealth/view/admin/view/home.dart';
-import 'package:hajjhealth/view/admin/view/notifications.dart';
-import 'package:hajjhealth/view/admin/view/profile.dart';
+import 'package:hajjhealth/view/admin/history.dart';
+import 'package:hajjhealth/view/admin/home.dart';
+import 'package:hajjhealth/view/admin/notifications.dart';
+import 'package:hajjhealth/view/admin/profile.dart';
 
 class NavbarRunnerApp extends StatefulWidget {
   @override

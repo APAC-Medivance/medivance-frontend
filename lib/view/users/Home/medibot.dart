@@ -41,36 +41,33 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       backgroundColor: Colors.white,
       body: SafeArea(
         child: model.when(
-          data: (data) => Column(
-            children: [
-              // App bar
-              _buildAppBar(context),
-              Container(
-                height: 1,
-                color: Colors.blue.withOpacity(0.3),
-                width: double.infinity,
+          data:
+              (data) => Column(
+                children: [
+                  // App bar
+                  _buildAppBar(context),
+                  Container(
+                    height: 1,
+                    color: Colors.blue.withOpacity(0.3),
+                    width: double.infinity,
+                  ),
+                  // Chat messages
+                  Expanded(
+                    child: ListView.builder(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      itemCount: _messages.length,
+                      itemBuilder: (context, index) {
+                        final message = _messages[index];
+                        return _buildMessageBubble(context, message);
+                      },
+                    ),
+                  ),
+                  // Input area
+                  _buildInputArea(context),
+                ],
               ),
-              // Chat messages
-              Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  itemCount: _messages.length,
-                  itemBuilder: (context, index) {
-                    final message = _messages[index];
-                    return _buildMessageBubble(context, message);
-                  },
-                ),
-              ),
-              // Input area
-              _buildInputArea(context),
-            ],
-          ),
-          loading: () => const Center(
-            child: CircularProgressIndicator(),
-          ),
-          error: (err, st) => Center(
-            child: Text('Error: $err'),
-          ),
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (err, st) => Center(child: Text('Error: $err')),
         ),
       ),
     );
@@ -98,11 +95,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 backgroundColor: Colors.white,
                 child: Image.asset(
                   'assets/medibot_logo.png',
-                  errorBuilder: (context, error, stackTrace) => const Icon(
-                    Icons.medical_services,
-                    color: Colors.blue,
-                    size: 24,
-                  ),
+                  errorBuilder:
+                      (context, error, stackTrace) => const Icon(
+                        Icons.medical_services,
+                        color: Colors.blue,
+                        size: 24,
+                      ),
                 ),
               ),
               Positioned(
@@ -153,27 +151,22 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             const CircleAvatar(
               radius: 14,
               backgroundColor: Colors.white,
-              child: Icon(
-                Icons.medical_services,
-                color: Colors.blue,
-                size: 16,
-              ),
+              child: Icon(Icons.medical_services, color: Colors.blue, size: 16),
             ),
             const SizedBox(width: 8),
           ],
           Column(
             crossAxisAlignment:
-                message.isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                message.isUser
+                    ? CrossAxisAlignment.end
+                    : CrossAxisAlignment.start,
             children: [
               if (!message.isUser)
                 const Padding(
                   padding: EdgeInsets.only(left: 4.0, bottom: 2.0),
                   child: Text(
                     'Doctor Bot',
-                    style: TextStyle(
-                      color: Colors.grey,
-                      fontSize: 12,
-                    ),
+                    style: TextStyle(color: Colors.grey, fontSize: 12),
                   ),
                 ),
               Container(
@@ -201,10 +194,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   padding: EdgeInsets.only(right: 4.0, top: 2.0),
                   child: Text(
                     'User',
-                    style: TextStyle(
-                      color: Colors.grey,
-                      fontSize: 12,
-                    ),
+                    style: TextStyle(color: Colors.grey, fontSize: 12),
                   ),
                 ),
             ],
@@ -216,11 +206,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               backgroundColor: Colors.blue,
               backgroundImage: const AssetImage('assets/user_avatar.png'),
               onBackgroundImageError: (exception, stackTrace) {},
-              child: const Icon(
-                Icons.person,
-                color: Colors.white,
-                size: 16,
-              ),
+              child: const Icon(Icons.person, color: Colors.white, size: 16),
             ),
           ],
         ],
@@ -233,9 +219,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(
-          top: BorderSide(color: Colors.grey.withOpacity(0.2)),
-        ),
+        border: Border(top: BorderSide(color: Colors.grey.withOpacity(0.2))),
       ),
       child: Row(
         children: [
@@ -251,15 +235,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(25.0),
-                  borderSide: BorderSide(
-                    color: Colors.grey.withOpacity(0.3),
-                  ),
+                  borderSide: BorderSide(color: Colors.grey.withOpacity(0.3)),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(25.0),
-                  borderSide: BorderSide(
-                    color: Colors.grey.withOpacity(0.3),
-                  ),
+                  borderSide: BorderSide(color: Colors.grey.withOpacity(0.3)),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(25.0),
@@ -274,7 +254,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         _messages.add(ChatMessage(text: text, isUser: true));
                         _controller.clear();
                       });
-                      ref.read(geminiChatServiceProvider).sendMessage(text);
+                      ref.read(geminiChatServiceProvider).sendMessage(text, (
+                        response,
+                      ) {
+                        setState(() {
+                          _messages.add(
+                            ChatMessage(text: response, isUser: false),
+                          );
+                        });
+                      });
                     }
                   },
                 ),

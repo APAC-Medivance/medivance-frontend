@@ -58,7 +58,32 @@ class GeminiChatService {
   final ChatStateNotifier chatStateNotifier;
   final LogStateNotifier logStateNotifier;
 
-  Future<void> sendMessage(String message) async {
+  // Future<void> sendMessage(String message) async {
+  //   final chatSession = await ref.read(chatSessionProvider.future);
+
+  //   chatStateNotifier.addUserMessage(message);
+  //   logStateNotifier.logUserText(message);
+  //   final llmMessage = chatStateNotifier.createLlmMessage();
+  //   try {
+  //     final response = await chatSession.sendMessage(Content.text(message));
+
+  //     final responseText = response.text;
+  //     if (responseText != null) {
+  //       logStateNotifier.logLlmText(responseText);
+  //       chatStateNotifier.appendToMessage(llmMessage.id, responseText);
+  //     }
+  //   } catch (e, st) {
+  //     logStateNotifier.logError(e, st: st);
+  //     chatStateNotifier.appendToMessage(
+  //       llmMessage.id,
+  //       "\nI'm sorry, I encountered an error processing your request. "
+  //       "Please try again.",
+  //     );
+  //   } finally {
+  //     chatStateNotifier.finalizeMessage(llmMessage.id);
+  //   }
+  // }
+  Future<void> sendMessage(String message, Function(String) onResponse) async {
     final chatSession = await ref.read(chatSessionProvider.future);
 
     chatStateNotifier.addUserMessage(message);
@@ -71,14 +96,14 @@ class GeminiChatService {
       if (responseText != null) {
         logStateNotifier.logLlmText(responseText);
         chatStateNotifier.appendToMessage(llmMessage.id, responseText);
+        onResponse(responseText); // Kirim balasan ke UI
       }
     } catch (e, st) {
       logStateNotifier.logError(e, st: st);
-      chatStateNotifier.appendToMessage(
-        llmMessage.id,
-        "\nI'm sorry, I encountered an error processing your request. "
-        "Please try again.",
-      );
+      final errorMessage =
+          "\nI'm sorry, I encountered an error processing your request. Please try again.";
+      chatStateNotifier.appendToMessage(llmMessage.id, errorMessage);
+      onResponse(errorMessage); // Kirim pesan error ke UI
     } finally {
       chatStateNotifier.finalizeMessage(llmMessage.id);
     }

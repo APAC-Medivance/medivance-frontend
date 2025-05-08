@@ -110,7 +110,7 @@ class AdminHomeScreen extends StatelessWidget {
           BoxShadow(
             color: Colors.grey.withOpacity(0.5),
             blurRadius: 5,
-            spreadRadius: 2,
+            spreadRadius: 1,
             offset: const Offset(0, 4)
           )
         ]

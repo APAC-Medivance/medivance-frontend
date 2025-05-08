@@ -20,7 +20,7 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(MediBotScreen());
+  runApp(MedivanceApp());
 }
 
 class MedivanceApp extends StatelessWidget {

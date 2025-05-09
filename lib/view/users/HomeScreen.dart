@@ -1,7 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
   final Color backgroundColor = Color(0xFFE8F9FF);
+  String? displayName;
+
+  @override
+  void initState() {
+    super.initState();
+    final user = FirebaseAuth.instance.currentUser;
+    setState(() {
+      displayName = user?.displayName ?? "Guest";
+    });
+    print("Debug (user) : ${user}");
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,13 +41,28 @@ class HomeScreen extends StatelessWidget {
                     ),
                     radius: 20,
                   ),
-                  Icon(Icons.logout),
+                  InkWell(
+                    onTap: () async {
+                      await FirebaseAuth.instance.signOut();
+                      Navigator.pushReplacementNamed(
+                        context,
+                        '/login',
+                      ); // Pastikan route '/login' ada
+                    },
+                    borderRadius: BorderRadius.circular(20),
+                    child: Padding(
+                      padding: const EdgeInsets.all(
+                        8.0,
+                      ), // biar area klik-nya lebih besar
+                      child: Icon(Icons.logout, color: Colors.red),
+                    ),
+                  ),
                 ],
               ),
               SizedBox(height: 30),
               Text('Hello,', style: TextStyle(fontSize: 22)),
               Text(
-                'Sarah!',
+                '${displayName ?? "Loading ..."}',
                 style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 20),
@@ -45,9 +77,9 @@ class HomeScreen extends StatelessWidget {
                       color: Colors.grey.withOpacity(0.5),
                       blurRadius: 5,
                       spreadRadius: 2,
-                      offset: const Offset(0, 4)
-                    )
-                  ]
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
                 child: Row(
                   children: [
@@ -57,7 +89,10 @@ class HomeScreen extends StatelessWidget {
                         children: [
                           Text(
                             'Stay health!',
-                            style: TextStyle(fontSize: 19,fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                              fontSize: 19,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           SizedBox(height: 6),
                           Text(
@@ -65,10 +100,14 @@ class HomeScreen extends StatelessWidget {
                             style: TextStyle(fontSize: 17),
                           ),
                         ],
-                      )                      
+                      ),
                     ),
                     SizedBox(width: 10),
-                    Image.asset('assets/img/nurse.png', width: 150, height: 150),
+                    Image.asset(
+                      'assets/img/nurse.png',
+                      width: 150,
+                      height: 150,
+                    ),
                   ],
                 ),
               ),
@@ -85,12 +124,37 @@ class HomeScreen extends StatelessWidget {
                   mainAxisSpacing: 16,
                   crossAxisSpacing: 16,
                   children: [
-                    buildMenuItem(context, Icons.assignment, "MediTory", "/meditory"),
-                    buildMenuItem(context, Icons.location_on, "MediLoc", "/mediloc"),
-                    buildMenuItem(context, Icons.chat_bubble_outline, "MediBot", "/medibot"),
+                    buildMenuItem(
+                      context,
+                      Icons.assignment,
+                      "MediTory",
+                      "/meditory",
+                    ),
+                    buildMenuItem(
+                      context,
+                      Icons.location_on,
+                      "MediLoc",
+                      "/mediloc",
+                    ),
+                    buildMenuItem(
+                      context,
+                      Icons.chat_bubble_outline,
+                      "MediBot",
+                      "/medibot",
+                    ),
                     buildMenuItem(context, Icons.call, "MediCall", "/medicall"),
-                    buildMenuItem(context, Icons.card_giftcard, "MediHajj", "/medihajj"),
-                    buildMenuItem(context, Icons.info_outline, "About", "/about"),
+                    buildMenuItem(
+                      context,
+                      Icons.card_giftcard,
+                      "MediHajj",
+                      "/medihajj",
+                    ),
+                    buildMenuItem(
+                      context,
+                      Icons.info_outline,
+                      "About",
+                      "/about",
+                    ),
                   ],
                 ),
               ),
@@ -101,7 +165,12 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget buildMenuItem(BuildContext context, IconData icon, String label, String route) {
+  Widget buildMenuItem(
+    BuildContext context,
+    IconData icon,
+    String label,
+    String route,
+  ) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -109,11 +178,11 @@ class HomeScreen extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.5),
-            blurRadius: 5,
-            spreadRadius: 2,
-            offset: const Offset(0, 4)
-          )
-        ]
+            blurRadius: 1,
+            spreadRadius: 1,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: InkWell(
         onTap: () {

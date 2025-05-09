@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hajjhealth/view/admin/navbar.dart';
+import 'package:hajjhealth/view/auth/login.dart';
+import 'package:hajjhealth/view/auth/signup.dart';
 import 'package:hajjhealth/view/users/navbar_app.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -14,7 +16,7 @@ class _SplashScreenState extends State<SplashScreen> {
     Future.delayed(Duration(seconds: 2), () {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => NavbarRunnerApp()),
+        MaterialPageRoute(builder: (context) => LoginScreen()),
       );
     });
   }

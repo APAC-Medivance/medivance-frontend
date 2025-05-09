@@ -14,7 +14,6 @@ import 'package:hajjhealth/view/users/Home/medibot.dart';
 import 'package:hajjhealth/view/users/Home/medical.dart';
 import 'package:hajjhealth/view/users/Home/medihajj.dart';
 import 'package:hajjhealth/view/users/Home/medinfo.dart';
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(

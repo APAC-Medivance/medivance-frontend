@@ -188,24 +188,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 Center(
                   child: Image.asset(
                     'assets/img/logo.png',
-                    height: 100,
+                    height: 150,
                   ),
                 ),
                 
-                SizedBox(height: 30),
+                SizedBox(height: 10),
                 
                 // Welcome Text
                 Text(
                   'Create Account',
                   style: TextStyle(
-                    fontSize: 28,
+                    fontSize: 20,
+                    
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
                   ),
-                  textAlign: TextAlign.center,
+                  textAlign: TextAlign.left,
                 ),
                 
-                SizedBox(height: 12),
+                SizedBox(height: 6),
                 
                 Text(
                   'Sign up to get started',
@@ -213,7 +214,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     fontSize: 16,
                     color: Colors.black54,
                   ),
-                  textAlign: TextAlign.center,
+                  textAlign: TextAlign.left,
                 ),
                 
                 SizedBox(height: 30),

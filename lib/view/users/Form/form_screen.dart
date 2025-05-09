@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:hajjhealth/view/users/Form/past_history.dart';
 import 'package:hajjhealth/view/users/Form/family_history.dart';
@@ -37,33 +36,6 @@ class _FormScreenState extends State<FormScreen> {
                 if (widget.formType == 'Family History') FamilyHistoryForm(),
                 if (widget.formType == 'Social History') SocialHistoryForm(),
                 const SizedBox(height: 24),
-                Center(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        // Proses data
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Processing Data')),
-                        );
-                        // Kembali setelah proses selesai
-                        Future.delayed(const Duration(seconds: 1), () {
-                          Navigator.pop(context);
-                        });
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 32,
-                        vertical: 12,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text('Submit', style: TextStyle(color: Colors.white,),),
-                  ),
-                ),
               ],
             ),
           ),

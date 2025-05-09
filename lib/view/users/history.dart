@@ -30,7 +30,7 @@ class HistoryScreen extends StatelessWidget {
                   ),
                 ),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
 
                 // Past History Card
                 _buildHistoryCard(
@@ -40,7 +40,7 @@ class HistoryScreen extends StatelessWidget {
                   () => _navigateToForm(context, 'Past History'),
                 ),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
 
                 // Family History Card
                 _buildHistoryCard(
@@ -50,7 +50,7 @@ class HistoryScreen extends StatelessWidget {
                   () => _navigateToForm(context, 'Family History'),
                 ),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
 
                 // Social History Card
                 _buildHistoryCard(
@@ -76,7 +76,7 @@ class HistoryScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.5),
+            color: Colors.grey.withOpacity(0.3),
             spreadRadius: 1,
             blurRadius: 3,
             offset: const Offset(0, 1),
@@ -112,7 +112,7 @@ class HistoryScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(14),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.grey.withOpacity(0.5),
+                  color: Colors.grey.withOpacity(0.3),
                   spreadRadius: 1,
                   blurRadius: 3,
                   offset: const Offset(0, 1),

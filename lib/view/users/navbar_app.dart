@@ -16,7 +16,7 @@ class _NavbarAppState extends State<NavbarApp> {
     HomeScreen(),
     StatisticScreen(),
     HistoryScreen(),
-    ProfileScreen(),
+    ProfileViewPage(),
   ];
 
   void _onItemTapped(int index) {

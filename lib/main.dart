@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hajjhealth/coba.dart';
 import 'package:hajjhealth/view/admin/home/meditory.dart';
 import 'package:hajjhealth/view/admin/navbar.dart';
 import 'firebase_options.dart';
@@ -14,6 +15,7 @@ import 'package:hajjhealth/view/users/Home/medibot.dart';
 import 'package:hajjhealth/view/users/Home/medical.dart';
 import 'package:hajjhealth/view/users/Home/medihajj.dart';
 import 'package:hajjhealth/view/users/Home/medinfo.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(

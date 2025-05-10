@@ -54,7 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       padding: const EdgeInsets.all(
                         8.0,
                       ), // biar area klik-nya lebih besar
-                      child: Icon(Icons.logout, color: Colors.red),
+                      child: Icon(Icons.logout, color: Colors.black),
                     ),
                   ),
                 ],

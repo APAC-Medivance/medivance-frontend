@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 class PastHistoryForm extends StatefulWidget {
   @override
@@ -6,6 +8,13 @@ class PastHistoryForm extends StatefulWidget {
 }
 
 class _PastHistoryFormState extends State<PastHistoryForm> with SingleTickerProviderStateMixin {
+
+  // Firebase database instance with URL region Asia-Southeast1
+  final FirebaseDatabase _database = FirebaseDatabase.instanceFor(
+    app: Firebase.app(),
+    databaseURL: 'https://hajjhealth-app-default-rtdb.asia-southeast1.firebasedatabase.app',
+  );
+
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
@@ -39,10 +48,14 @@ class _PastHistoryFormState extends State<PastHistoryForm> with SingleTickerProv
 
   @override
   void dispose() {
+    // Dispose all controllers
+    for (var controller in controllers) {
+      controller.dispose();
+    }
     _controller.dispose();
     super.dispose();
   }
-
+  
   void _addField() {
     setState(() {
       controllers.add(TextEditingController());
@@ -55,28 +68,73 @@ class _PastHistoryFormState extends State<PastHistoryForm> with SingleTickerProv
     });
   }
 
-  void _saveData() {
-    List<String> inputs = controllers
-        .where((c) => c.text.trim().isNotEmpty)
-        .map((c) => c.text.trim())
-        .toList();
-    print('Saved Inputs: $inputs');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Icon(Icons.check_circle, color: white),
-            SizedBox(width: 12),
-            Text('Past medical history saved successfully'),
-          ],
+  // Function to save data to Firebase
+  Future<void> _saveDataToFirebase() async {
+    try {
+      final ref = _database.ref('past_history').push(); // generate auto-ID
+      
+      // Filter out empty entries and collect valid ones
+      List<String> medicalHistoryItems = controllers
+          .where((c) => c.text.trim().isNotEmpty)
+          .map((c) => c.text.trim())
+          .toList();
+      
+      // Build data object
+      Map<String, dynamic> medicalHistoryData = {
+        'historyItems': medicalHistoryItems,
+        'timestamp': ServerValue.timestamp,
+      };
+      
+      // Log data for debugging
+      print('Data to save: $medicalHistoryData');
+      
+      // Save to database
+      await ref.set(medicalHistoryData);
+      
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.check_circle, color: white),
+              SizedBox(width: 12),
+              Text('Past medical history saved successfully'),
+            ],
+          ),
+          backgroundColor: primaryBlue,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
-        backgroundColor: primaryBlue,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
+      );
+      
+      // Navigate back to previous screen after successful save
+      Navigator.pop(context);
+      
+    } catch (e) {
+      print('Error saving data: $e');
+      
+      // Show error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.error, color: white),
+              SizedBox(width: 12),
+              Text('Error saving data. Please try again.'),
+            ],
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
-      ),
-    );
+      );
+      
+      throw e;
+    }
   }
 
   @override
@@ -162,7 +220,7 @@ class _PastHistoryFormState extends State<PastHistoryForm> with SingleTickerProv
                     ),
                     const SizedBox(width: 12),
                     ElevatedButton(
-                      onPressed: _saveData,
+                      onPressed: _saveDataToFirebase, // Updated to call Firebase save function
                       child: Text('Save', style: TextStyle(color: Colors.white)),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: primaryBlue,

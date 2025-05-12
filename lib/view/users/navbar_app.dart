@@ -14,7 +14,7 @@ class _NavbarAppState extends State<NavbarApp> {
 
   final List<Widget> _screens = [
     HomeScreen(),
-    StatisticScreen(),
+    HealthMetricsScreen(),
     HistoryScreen(),
     ProfileViewPage(),
   ];

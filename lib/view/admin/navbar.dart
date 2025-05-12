@@ -18,8 +18,8 @@ class _NavbarRunnerAppState extends State<NavbarRunnerApp> {
   final List<Widget> _screens = [
     AdminHomeScreen(),
     AdminNotificationScreen(),
-    AdminHistoryScreen(),
-    AdminProfileScreen()
+    OverviewScreen(),
+    DoctorProfileViewPage()
   ];
 
   void _onItemTapped(int index) {

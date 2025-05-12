@@ -32,7 +32,7 @@ class MedivanceApp extends StatelessWidget {
       title: 'MediApp',
       theme: ThemeData(
         primarySwatch: Colors.blue,
-        scaffoldBackgroundColor: const Color(0xFFEAF7F9),
+        // scaffoldBackgroundColor: const Color(0xFFEAF7F9),
         textTheme: GoogleFonts.poppinsTextTheme(
           Theme.of(context).textTheme,
         ),

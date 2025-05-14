@@ -192,276 +192,287 @@ class _ProfileViewPageState extends State<ProfileViewPage> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Profile header with avatar and name
-            Container(
-              padding: EdgeInsets.all(20),
-              color: lightBlue,
-              child: Center(
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Column(
-                      children: [
-                        CircleAvatar(
-                          radius: 50,
-                          backgroundColor: Colors.grey[100],
-                          backgroundImage: profileImage != null
-                              ? FileImage(profileImage!)
-                              : null,
-                          child: profileImage == null
-                              ? Icon(Icons.person, size: 50, color: darkBlue)
-                              : null,
-                        ),
-                        SizedBox(height: 16),
-                        Text(
-                          profileData?['name'] ?? 'Your name',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: darkBlue,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+            Color(0xFFE8F9FF),
+            Colors.white
+          ])
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              // Profile header with avatar and name
+              Container(
+                padding: EdgeInsets.all(20),
+                // color: lightBlue,
+                child: Center(
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Column(
+                        children: [
+                          CircleAvatar(
+                            radius: 50,
+                            backgroundColor: Colors.grey[100],
+                            backgroundImage: profileImage != null
+                                ? FileImage(profileImage!)
+                                : null,
+                            child: profileImage == null
+                                ? Icon(Icons.person, size: 50, color: darkBlue)
+                                : null,
                           ),
-                        ),
-                      ],
-                    ),
-                    
-                    // Warning icon when data is incomplete
-                    if (!hasCompleteData)
-                      Positioned(
-                        top: 0,
-                        right: 0,
-                        child: Container(
-                          padding: EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.amber[700],
-                            shape: BoxShape.circle,
+                          SizedBox(height: 16),
+                          Text(
+                            profileData?['name'] ?? 'Your name',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: darkBlue,
+                            ),
                           ),
-                          child: Tooltip(
-                            message: 'Please complete your profile',
-                            child: Icon(
-                              Icons.warning_amber_rounded,
-                              color: Colors.white,
-                              size: 24,
+                        ],
+                      ),
+                      
+                      // Warning icon when data is incomplete
+                      if (!hasCompleteData)
+                        Positioned(
+                          top: 0,
+                          right: 0,
+                          child: Container(
+                            padding: EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.amber[700],
+                              shape: BoxShape.circle,
+                            ),
+                            child: Tooltip(
+                              message: 'Please complete your profile',
+                              child: Icon(
+                                Icons.warning_amber_rounded,
+                                color: Colors.white,
+                                size: 24,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-            
-            // Basic info card
-            Card(
-              color: Colors.white,
-              margin: EdgeInsets.all(16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
-              ),
-              elevation: 4,
-              child: Padding(
-                padding: EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    // Date and Height
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        // Date
-                        Expanded(
-                          child: Row(
-                            children: [
-                              Icon(Icons.calendar_today, color: primaryBlue),
-                              SizedBox(width: 12),
-                              Text(
-                                profileData?['birthdate'] ?? 'Not set',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        // Height
-                        Expanded(
-                          child: Row(
-                            children: [
-                              Icon(Icons.height, color: primaryBlue),
-                              SizedBox(width: 12),
-                              Text(
-                                profileData?['height'] != null ? '${profileData!['height']} cm' : 'Not set',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 16),
-                    
-                    // Location and Weight
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        // Location
-                        Expanded(
-                          child: Row(
-                            children: [
-                              Icon(Icons.location_on, color: primaryBlue),
-                              SizedBox(width: 12),
-                              Text(
-                                profileData?['location'] ?? 'Not set',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        // Weight
-                        Expanded(
-                          child: Row(
-                            children: [
-                              Icon(Icons.fitness_center, color: primaryBlue),
-                              SizedBox(width: 12),
-                              Text(
-                                profileData?['weight'] != null ? '${profileData!['weight']} kg' : 'Not set',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            
-            // Contact info card
-            Card(
-              color: Colors.white,
-              margin: EdgeInsets.symmetric(horizontal: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
-              ),
-              elevation: 4,
-              child: Padding(
-                padding: EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    // Phone
-                    Row(
-                      children: [
-                        Icon(Icons.phone, color: primaryBlue),
-                        SizedBox(width: 12),
-                        Text(
-                          profileData?['phone'] ?? 'Not set',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 16),
-                    
-                    // Email
-                    Row(
-                      children: [
-                        Icon(Icons.email, color: primaryBlue),
-                        SizedBox(width: 12),
-                        Text(
-                          profileData?['email'] ?? 'Not set',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 16),
-                    
-                    // Gender
-                    Row(
-                      children: [
-                        Icon(Icons.people, color: primaryBlue),
-                        SizedBox(width: 12),
-                        Text(
-                          profileData?['gender'] ?? 'Not set',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 16),
-                    
-                    // Age
-                    Row(
-                      children: [
-                        Icon(Icons.cake, color: primaryBlue),
-                        SizedBox(width: 12),
-                        Text(
-                          profileData?['age'] != null ? 'Age ${profileData!['age']}' : 'Age not set',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            
-            // Medical History Card
-            Card(
-              color : Colors.white,
-              margin: EdgeInsets.all(16),
-              shape: RoundedRectangleBorder(
               
-                borderRadius: BorderRadius.circular(15),
-              ),
-              elevation: 4,
-              child: Padding(
-                padding: EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Medical History',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: darkBlue,
+              // Basic info card
+              Card(
+                color: Colors.white,
+                margin: EdgeInsets.all(16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                elevation: 4,
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      // Date and Height
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // Date
+                          Expanded(
+                            child: Row(
+                              children: [
+                                Icon(Icons.calendar_today, color: primaryBlue),
+                                SizedBox(width: 12),
+                                Text(
+                                  profileData?['birthdate'] ?? 'Not set',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Height
+                          Expanded(
+                            child: Row(
+                              children: [
+                                Icon(Icons.height, color: primaryBlue),
+                                SizedBox(width: 12),
+                                Text(
+                                  profileData?['height'] != null ? '${profileData!['height']} cm' : 'Not set',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    SizedBox(height: 12),
-                    Text(
-                      medicalHistory,
-                      style: TextStyle(
-                        fontSize: 14,
-                        height: 1.5,
+                      SizedBox(height: 16),
+                      
+                      // Location and Weight
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // Location
+                          Expanded(
+                            child: Row(
+                              children: [
+                                Icon(Icons.location_on, color: primaryBlue),
+                                SizedBox(width: 12),
+                                Text(
+                                  profileData?['location'] ?? 'Not set',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Weight
+                          Expanded(
+                            child: Row(
+                              children: [
+                                Icon(Icons.fitness_center, color: primaryBlue),
+                                SizedBox(width: 12),
+                                Text(
+                                  profileData?['weight'] != null ? '${profileData!['weight']} kg' : 'Not set',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+              
+              // Contact info card
+              Card(
+                color: Colors.white,
+                margin: EdgeInsets.symmetric(horizontal: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                elevation: 4,
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      // Phone
+                      Row(
+                        children: [
+                          Icon(Icons.phone, color: primaryBlue),
+                          SizedBox(width: 12),
+                          Text(
+                            profileData?['phone'] ?? 'Not set',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 16),
+                      
+                      // Email
+                      Row(
+                        children: [
+                          Icon(Icons.email, color: primaryBlue),
+                          SizedBox(width: 12),
+                          Text(
+                            profileData?['email'] ?? 'Not set',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 16),
+                      
+                      // Gender
+                      Row(
+                        children: [
+                          Icon(Icons.people, color: primaryBlue),
+                          SizedBox(width: 12),
+                          Text(
+                            profileData?['gender'] ?? 'Not set',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 16),
+                      
+                      // Age
+                      Row(
+                        children: [
+                          Icon(Icons.cake, color: primaryBlue),
+                          SizedBox(width: 12),
+                          Text(
+                            profileData?['age'] != null ? 'Age ${profileData!['age']}' : 'Age not set',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              
+              // Medical History Card
+              Card(
+                color : Colors.white,
+                margin: EdgeInsets.all(16),
+                shape: RoundedRectangleBorder(
+                
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                elevation: 4,
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Medical History',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: darkBlue,
+                        ),
+                      ),
+                      SizedBox(height: 12),
+                      Text(
+                        medicalHistory,
+                        style: TextStyle(
+                          fontSize: 14,
+                          height: 1.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

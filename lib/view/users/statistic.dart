@@ -69,114 +69,133 @@ class _HealthMetricsScreenState extends State<HealthMetricsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        title: const Text(
-          'Health Statistics',
-          style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-          ),
-        )
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              // Statistic Card
-              _buildCard(
-                'Statistic',
-                SizedBox(
-                  height: 200,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Rings chart
-                      const Expanded(
-                        flex: 7,
-                        child: HealthRingsChart(),
-                      ),
-                      // Legend
-                      Expanded(
-                        flex: 3,
-                        child: Column(
+      // appBar: AppBar(
+      //   elevation: 0,
+      //   backgroundColor: Colors.transparent,
+      //   title: const Text(
+      //     'Health Statistics',
+      //     style: TextStyle(
+      //       fontSize: 28,
+      //       fontWeight: FontWeight.bold,
+      //       color: Colors.black,
+      //     ),
+      //   )
+      // ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+            Color(0xFFE8F9FF),
+            Colors.white
+          ])
+        ),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 50),
+                Text("Health Statistics", style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black
+                )),
+
+                const SizedBox(height: 20),
+
+                // Statistic Card
+                _buildCard(
+                  'Statistic',
+                  SizedBox(
+                    height: 200,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        // Rings chart
+                        const Expanded(
+                          flex: 7,
+                          child: HealthRingsChart(),
+                        ),
+                        // Legend
+                        Expanded(
+                          flex: 3,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              _buildLegendItem(Colors.blue.shade300, 'SpO2'),
+                              const SizedBox(height: 10),
+                              _buildLegendItem(Colors.red.shade300, 'HR'),
+                              const SizedBox(height: 10),
+                              _buildLegendItem(Colors.orange.shade300, 'Temp')
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                
+                const SizedBox(height: 16),
+                
+                // Heart Rate Card
+                _buildCard(
+                  'Heart rate',
+                  SizedBox(
+                    height: 100,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: CustomPaint(
+                            painter: HeartRatePainter(),
+                          ),
+                        ),
+                        const Column(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            _buildLegendItem(Colors.blue.shade300, 'SpO2'),
-                            const SizedBox(height: 10),
-                            _buildLegendItem(Colors.red.shade300, 'HR'),
-                            const SizedBox(height: 10),
-                            _buildLegendItem(Colors.orange.shade300, 'Temp'),
-                            const SizedBox(height: 10),
-                            _buildLegendItem(Colors.green, 'BP'),
+                            Text(
+                              'bpm',
+                              style: TextStyle(
+                                color: Colors.red,
+                                fontSize: 14,
+                              ),
+                            ),
                           ],
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 20),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              
-              const SizedBox(height: 16),
-              
-              // Heart Rate Card
-              _buildCard(
-                'Heart rate',
-                SizedBox(
-                  height: 100,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: CustomPaint(
-                          painter: HeartRatePainter(),
-                        ),
-                      ),
-                      const Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'bpm',
-                            style: TextStyle(
-                              color: Colors.red,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(width: 20),
-                    ],
+                
+                const SizedBox(height: 16),
+                
+                // SpO2 Card
+                _buildCard(
+                  'SpO2',
+                  SizedBox(
+                    height: 100,
+                    child: CustomPaint(
+                      painter: BubblesPainter(),
+                      size: const Size(double.infinity, 100),
+                    ),
                   ),
                 ),
-              ),
-              
-              const SizedBox(height: 16),
-              
-              // SpO2 Card
-              _buildCard(
-                'SpO2',
-                SizedBox(
-                  height: 100,
-                  child: CustomPaint(
-                    painter: BubblesPainter(),
-                    size: const Size(double.infinity, 100),
+                
+                const SizedBox(height: 16),
+                
+                // Suhu Card
+                _buildCard(
+                  'Suhu',
+                  const SizedBox(
+                    height: 100,
                   ),
                 ),
-              ),
-              
-              const SizedBox(height: 16),
-              
-              // Suhu Card
-              _buildCard(
-                'Suhu',
-                const SizedBox(
-                  height: 100,
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -189,6 +208,14 @@ class _HealthMetricsScreenState extends State<HealthMetricsScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.2),
+            blurRadius: 0,
+            spreadRadius: 0.1,
+            offset: const Offset(0, 1),
+          )
+        ]
       ),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -264,8 +291,7 @@ class RingsPainter extends CustomPainter {
     final rings = [
       _RingData(Colors.blue.shade300, 0.95, Colors.blue.shade100),
       _RingData(Colors.red.shade300, 0.8, Colors.red.shade100),
-      _RingData(Colors.orange.shade300, 0.75, Colors.orange.shade100),
-      _RingData(Colors.green, 0.9, Colors.green.shade100),
+      _RingData(Colors.orange.shade300, 0.75, Colors.orange.shade100)
     ];
     
     // Draw rings

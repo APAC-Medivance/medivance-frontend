@@ -9,57 +9,68 @@ class HistoryScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFFE8F9FF),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Banner with doctor illustration
-                _buildBanner(context),
-
-                const SizedBox(height: 20),
-
-                // Medical History Title
-                Text(
-                  'Medical History',
-                  style: GoogleFonts.poppins(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+            Color(0xFFE8F9FF),
+            Colors.white
+          ])
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Banner with doctor illustration
+                  _buildBanner(context),
+        
+                  const SizedBox(height: 20),
+        
+                  // Medical History Title
+                  Text(
+                    'Medical History',
+                    style: GoogleFonts.poppins(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-
-                const SizedBox(height: 8),
-
-                // Past History Card
-                _buildHistoryCard(
-                  context,
-                  'Past History',
-                  'Contains information about your previous medical conditions, surgeries, and treatments.',
-                  () => _navigateToForm(context, 'Past History'),
-                ),
-
-                const SizedBox(height: 8),
-
-                // Family History Card
-                _buildHistoryCard(
-                  context,
-                  'Family History',
-                  'Information about medical conditions that run in your family.',
-                  () => _navigateToForm(context, 'Family History'),
-                ),
-
-                const SizedBox(height: 8),
-
-                // Social History Card
-                _buildHistoryCard(
-                  context,
-                  'Social History',
-                  'Information about your lifestyle, habits, and social factors that may affect your health.',
-                  () => _navigateToForm(context, 'Social History'),
-                ),
-              ],
+        
+                  const SizedBox(height: 8),
+        
+                  // Past History Card
+                  _buildHistoryCard(
+                    context,
+                    'Past History',
+                    'Contains information about your previous medical conditions, surgeries, and treatments.',
+                    () => _navigateToForm(context, 'Past History'),
+                  ),
+        
+                  const SizedBox(height: 8),
+        
+                  // Family History Card
+                  _buildHistoryCard(
+                    context,
+                    'Family History',
+                    'Information about medical conditions that run in your family.',
+                    () => _navigateToForm(context, 'Family History'),
+                  ),
+        
+                  const SizedBox(height: 8),
+        
+                  // Social History Card
+                  _buildHistoryCard(
+                    context,
+                    'Social History',
+                    'Information about your lifestyle, habits, and social factors that may affect your health.',
+                    () => _navigateToForm(context, 'Social History'),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -150,7 +161,7 @@ class HistoryScreen extends StatelessWidget {
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(20),
         clipBehavior: Clip.none,
-        elevation: 3,
+        elevation: 0.4,
         child: InkWell(
           onTap: onTap,
           splashColor: Colors.blue.withOpacity(0.1),
@@ -309,9 +320,10 @@ class HistoryScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black26,
-                  blurRadius: 10.0,
-                  offset: const Offset(0.0, 10.0),
+                  color: Colors.grey.withOpacity(0.2),
+                  blurRadius: 0,
+                  spreadRadius: 0.1,
+                  offset: const Offset(0, 1),
                 ),
               ],
             ),

@@ -1,9 +1,79 @@
 import 'package:flutter/material.dart';
 import 'package:hajjhealth/view/users/Form/form_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-class HistoryScreen extends StatelessWidget {
+class HistoryScreen extends StatefulWidget {
   const HistoryScreen({Key? key}) : super(key: key);
+
+  @override
+  _HistoryScreenState createState() => _HistoryScreenState();
+}
+
+class _HistoryScreenState extends State<HistoryScreen> {
+  // Firebase instances
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseDatabase _database = FirebaseDatabase.instanceFor(
+    app: Firebase.app(),
+    databaseURL: 'https://hajjhealth-app-default-rtdb.asia-southeast1.firebasedatabase.app',
+  );
+
+  // Color static
+  final Color darkBlue = Color.fromARGB(255, 91, 153, 246);
+
+  String medicalHistory = '';
+  bool isLoading = true;
+  bool hasCompleteData = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchMedicalHistory();
+  }
+
+  Future<void> _fetchMedicalHistory() async {
+    try {
+      final ref = _database.ref('past_history');
+      final snapshot = await ref.limitToLast(1).get();
+
+      if (snapshot.exists) {
+        Map<dynamic, dynamic> data = snapshot.value as Map<dynamic, dynamic>;
+        // Get the first entry (should be the most recent)
+        String key = data.keys.first;
+        Map<dynamic, dynamic> historyData = data[key];
+        
+        List<dynamic> historyItems = historyData['historyItems'] ?? [];
+        
+        setState(() {
+          if (historyItems.isEmpty) {
+            medicalHistory = 'No medical history recorded.';
+          } else {
+            medicalHistory = 'The patient has the following conditions: '
+                '${historyItems.join(", ")}. '
+                'Currently, they are taking [list medications], or '
+                'say "no regular medications". There is a '
+                'family history of heart disease and '
+                'diabetes, but no other significant hereditary '
+                'conditions. The patient is a non-smoker and '
+                'does not consume alcohol. Vaccinations are '
+                'up to date. Overall, there are no recent major '
+                'illnesses or hospitalizations.';
+          }
+        });
+      } else {
+        setState(() {
+          medicalHistory = 'No medical history recorded.';
+        });
+      }
+    } catch (e) {
+      print('Error fetching medical history: $e');
+      setState(() {
+        medicalHistory = 'Error loading medical history.';
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,61 +89,52 @@ class HistoryScreen extends StatelessWidget {
             Colors.white
           ])
         ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Banner with doctor illustration
-                  _buildBanner(context),
-        
-                  const SizedBox(height: 20),
-        
-                  // Medical History Title
-                  Text(
-                    'Medical History',
-                    style: GoogleFonts.poppins(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const SizedBox(height: 60),
+
+            const Text("Medical History", style: TextStyle(
+              fontSize: 26,
+              fontWeight: FontWeight.bold,
+              color: Colors.black
+            ),),
+            
+            // Medical History Card
+              Card(
+                color : Colors.white,
+                margin: EdgeInsets.all(16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                elevation: 0.4,
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Past History',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: darkBlue,
+                        ),
+                      ),
+                      SizedBox(height: 12),
+                      Text(
+                        medicalHistory,
+                        style: TextStyle(
+                          fontSize: 14,
+                          height: 1.5,
+                        ),
+                      ),
+                    ],
                   ),
-        
-                  const SizedBox(height: 8),
-        
-                  // Past History Card
-                  _buildHistoryCard(
-                    context,
-                    'Past History',
-                    'Contains information about your previous medical conditions, surgeries, and treatments.',
-                    () => _navigateToForm(context, 'Past History'),
-                  ),
-        
-                  const SizedBox(height: 8),
-        
-                  // Family History Card
-                  _buildHistoryCard(
-                    context,
-                    'Family History',
-                    'Information about medical conditions that run in your family.',
-                    () => _navigateToForm(context, 'Family History'),
-                  ),
-        
-                  const SizedBox(height: 8),
-        
-                  // Social History Card
-                  _buildHistoryCard(
-                    context,
-                    'Social History',
-                    'Information about your lifestyle, habits, and social factors that may affect your health.',
-                    () => _navigateToForm(context, 'Social History'),
-                  ),
-                ],
+                ),
               ),
-            ),
-          ),
-        ),
+          ],
+        )
       ),
     );
   }

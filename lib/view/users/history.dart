@@ -17,13 +17,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseDatabase _database = FirebaseDatabase.instanceFor(
     app: Firebase.app(),
-    databaseURL: 'https://hajjhealth-app-default-rtdb.asia-southeast1.firebasedatabase.app',
+    databaseURL:
+        'https://hajjhealth-app-default-rtdb.asia-southeast1.firebasedatabase.app',
   );
 
   // Color static
   final Color darkBlue = Color.fromARGB(255, 91, 153, 246);
 
-  String medicalHistory = '';
+  String pastHistory = '';
+  String familyHistory = '';
+  String socialHistory = '';
   bool isLoading = true;
   bool hasCompleteData = false;
 
@@ -35,42 +38,77 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   Future<void> _fetchMedicalHistory() async {
     try {
-      final ref = _database.ref('past_history');
-      final snapshot = await ref.limitToLast(1).get();
+      final pastHistoryRef = _database.ref('past_history');
+      final familyHistoryRef = _database.ref('family_history');
+      final socialHistoryRef = _database.ref('social_history');
 
-      if (snapshot.exists) {
-        Map<dynamic, dynamic> data = snapshot.value as Map<dynamic, dynamic>;
-        // Get the first entry (should be the most recent)
+      final pastSnapshot = await pastHistoryRef.limitToLast(1).get();
+      final familySnapshot = await familyHistoryRef.limitToLast(1).get();
+      final socialSnapshot = await socialHistoryRef.limitToLast(1).get();
+
+      String pastHistoryText = '';
+      String familyHistoryText = '';
+      String socialHistoryText = '';
+
+      // Past History
+      if (pastSnapshot.exists) {
+        Map<dynamic, dynamic> data =
+            pastSnapshot.value as Map<dynamic, dynamic>;
         String key = data.keys.first;
         Map<dynamic, dynamic> historyData = data[key];
-        
         List<dynamic> historyItems = historyData['historyItems'] ?? [];
-        
-        setState(() {
-          if (historyItems.isEmpty) {
-            medicalHistory = 'No medical history recorded.';
-          } else {
-            medicalHistory = 'The patient has the following conditions: '
-                '${historyItems.join(", ")}. '
-                'Currently, they are taking [list medications], or '
-                'say "no regular medications". There is a '
-                'family history of heart disease and '
-                'diabetes, but no other significant hereditary '
-                'conditions. The patient is a non-smoker and '
-                'does not consume alcohol. Vaccinations are '
-                'up to date. Overall, there are no recent major '
-                'illnesses or hospitalizations.';
-          }
-        });
+
+        pastHistoryText =
+            historyItems.isEmpty
+                ? 'No medical history recorded.'
+                : 'The patient has the following conditions: ${historyItems.join(", ")}.';
       } else {
-        setState(() {
-          medicalHistory = 'No medical history recorded.';
-        });
+        pastHistoryText = 'No medical history recorded.';
       }
+
+      // Family History
+      if (familySnapshot.exists) {
+        Map<dynamic, dynamic> data =
+            familySnapshot.value as Map<dynamic, dynamic>;
+        String key = data.keys.first;
+        Map<dynamic, dynamic> familyData = data[key];
+        List<dynamic> familyItems = familyData['conditions'] ?? [];
+
+        familyHistoryText =
+            familyItems.isEmpty
+                ? 'No significant hereditary conditions.'
+                : 'Family history includes: ${familyItems.join(", ")}.';
+      } else {
+        familyHistoryText = 'No family history recorded.';
+      }
+
+      // Social History
+      if (socialSnapshot.exists) {
+        Map<dynamic, dynamic> data =
+            socialSnapshot.value as Map<dynamic, dynamic>;
+        String key = data.keys.first;
+        Map<dynamic, dynamic> socialData = data[key];
+
+        String smokingStatus = socialData['smoking'] ?? 'Unknown';
+        String alcoholStatus = socialData['alcohol'] ?? 'Unknown';
+
+        socialHistoryText =
+            'Smoking status: $smokingStatus. Alcohol consumption: $alcoholStatus.';
+      } else {
+        socialHistoryText = 'No social history recorded.';
+      }
+
+      setState(() {
+        pastHistory ='$pastHistoryText';
+        familyHistory ='$familyHistoryText';
+        socialHistory ='$socialHistoryText';
+      });
     } catch (e) {
       print('Error fetching medical history: $e');
       setState(() {
-        medicalHistory = 'Error loading medical history.';
+        pastHistory = 'Error loading medical history.';
+        familyHistory = 'Error loading medical history.';
+        socialHistory = 'Error loading medical history.';
       });
     }
   }
@@ -84,57 +122,117 @@ class _HistoryScreenState extends State<HistoryScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-            Color(0xFFE8F9FF),
-            Colors.white
-          ])
+            colors: [Color(0xFFE8F9FF), Colors.white],
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 60),
 
-            const Text("Medical History", style: TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.bold,
-              color: Colors.black
-            ),),
-            
-            // Medical History Card
-              Card(
-                color : Colors.white,
-                margin: EdgeInsets.all(16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                elevation: 0.4,
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Past History',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: darkBlue,
-                        ),
+            const Text(
+              "Medical History",
+              style: TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+
+            // Past History Card
+            Card(
+              color: Colors.white,
+              margin: EdgeInsets.all(16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              elevation: 0.4,
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Past History',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: darkBlue,
                       ),
-                      SizedBox(height: 12),
-                      Text(
-                        medicalHistory,
-                        style: TextStyle(
-                          fontSize: 14,
-                          height: 1.5,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                    SizedBox(height: 12),
+                    Text(
+                      pastHistory,
+                      style: TextStyle(fontSize: 14, height: 1.5),
+                    ),
+                  ],
                 ),
               ),
+            ),
+
+            // Family History Card
+            Card(
+              color: Colors.white,
+              margin: EdgeInsets.all(16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              elevation: 0.4,
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Family History',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: darkBlue,
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                    Text(
+                      familyHistory,
+                      style: TextStyle(fontSize: 14, height: 1.5),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // Social History
+            Card(
+              color: Colors.white,
+              margin: EdgeInsets.all(16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              elevation: 0.4,
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Social History',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: darkBlue,
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                    Text(
+                      socialHistory,
+                      style: TextStyle(fontSize: 14, height: 1.5),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
-        )
+        ),
       ),
     );
   }
@@ -228,14 +326,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
           splashColor: Colors.blue.withOpacity(0.1),
           highlightColor: Colors.blue.withOpacity(0.05),
           child: Stack(
-          children: [
-            Container(
-              width: MediaQuery.of(context).size.width * 0.9, // Lebar card
-              height: 150, // Tinggi card
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-              ),
+            children: [
+              Container(
+                width: MediaQuery.of(context).size.width * 0.9, // Lebar card
+                height: 150, // Tinggi card
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -442,5 +540,3 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 }
-
-

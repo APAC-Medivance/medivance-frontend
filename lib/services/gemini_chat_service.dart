@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../providers/gemini.dart';
+import 'gemini_tools.dart';
 
 part 'gemini_chat_service.g.dart';
 
@@ -97,6 +98,34 @@ class GeminiChatService {
         logStateNotifier.logLlmText(responseText);
         chatStateNotifier.appendToMessage(llmMessage.id, responseText);
         onResponse(responseText); // Kirim balasan ke UI
+      }
+
+      if (response.functionCalls.isNotEmpty) {
+        final geminiTools = ref.read(geminiToolsProvider);
+
+        final List<FunctionResponse> functionResponses = [];
+        for (final functionCall in response.functionCalls) {
+          final result = await geminiTools.handleFunctionCall(
+            functionCall.name,
+            functionCall.args,
+          );
+          functionResponses.add(FunctionResponse(functionCall.name, result));
+        }
+
+        final functionResultResponse = await chatSession.sendMessage(
+          Content.functionResponses(functionResponses),
+        );
+
+        final responseText = functionResultResponse.text;
+        // if (responseText != null) {
+        //   logStateNotifier.logLlmText(responseText);
+        //   chatStateNotifier.appendToMessage(llmMessage.id, responseText);
+        // }
+        if (responseText != null) {
+          logStateNotifier.logLlmText(responseText);
+          chatStateNotifier.appendToMessage(llmMessage.id, responseText);
+          onResponse(responseText); // Kirim balasan ke UI
+        }
       }
     } catch (e, st) {
       logStateNotifier.logError(e, st: st);

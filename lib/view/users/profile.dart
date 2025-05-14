@@ -102,7 +102,7 @@ class _ProfileViewPageState extends State<ProfileViewPage> {
 
   Future<void> _fetchMedicalHistory() async {
     try {
-      final ref = _database.ref('past_medical_history');
+      final ref = _database.ref('past_history');
       final snapshot = await ref.limitToLast(1).get();
 
       if (snapshot.exists) {

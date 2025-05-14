@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hajjhealth/providers/gemini.dart';
 import 'package:hajjhealth/services/gemini_chat_service.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class MediBotScreen extends StatelessWidget {
   const MediBotScreen({Key? key}) : super(key: key);
@@ -32,6 +35,45 @@ class ChatScreen extends ConsumerStatefulWidget {
 class _ChatScreenState extends ConsumerState<ChatScreen> {
   final TextEditingController _controller = TextEditingController();
   final List<ChatMessage> _messages = [];
+  final ScrollController _scrollController = ScrollController();
+
+  String _userName = 'User';
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserName();
+  }
+
+  void _fetchUserName() async {
+    final database = FirebaseDatabase.instanceFor(
+      app: Firebase.app(),
+      databaseURL:
+          'https://hajjhealth-app-default-rtdb.asia-southeast1.firebasedatabase.app',
+    );
+
+    // Dapatkan ID user yang sedang login
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) {
+      // Jika user belum login, gunakan nama default
+      setState(() {
+        _userName = 'Guest';
+      });
+      return;
+    }
+
+    final userId = currentUser.uid; // ID user saat ini
+    final userRef = database.ref('user_profiles/$userId/name');
+
+    userRef.onValue.listen((event) {
+      final data = event.snapshot.value;
+      if (data != null) {
+        setState(() {
+          _userName = data.toString();
+        });
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,8 +94,19 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     width: double.infinity,
                   ),
                   // Chat messages
+                  // Expanded(
+                  //   child: ListView.builder(
+                  //     padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  //     itemCount: _messages.length,
+                  //     itemBuilder: (context, index) {
+                  //       final message = _messages[index];
+                  //       return _buildMessageBubble(context, message);
+                  //     },
+                  //   ),
+                  // ),
                   Expanded(
                     child: ListView.builder(
+                      controller: _scrollController, // Tambahkan ini
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
                       itemCount: _messages.length,
                       itemBuilder: (context, index) {
@@ -165,7 +218,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 const Padding(
                   padding: EdgeInsets.only(left: 4.0, bottom: 2.0),
                   child: Text(
-                    'Doctor Bot',
+                    'Medibot',
                     style: TextStyle(color: Colors.grey, fontSize: 12),
                   ),
                 ),
@@ -190,10 +243,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 ),
               ),
               if (message.isUser)
-                const Padding(
+                // const Padding(
+                Padding(
                   padding: EdgeInsets.only(right: 4.0, top: 2.0),
                   child: Text(
-                    'User',
+                    // 'User',
+                    _userName,
                     style: TextStyle(color: Colors.grey, fontSize: 12),
                   ),
                 ),
@@ -247,6 +302,25 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 ),
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.send, color: Colors.blue),
+
+                  // onPressed: () {
+                  //   final text = _controller.text.trim();
+                  //   if (text.isNotEmpty) {
+                  //     setState(() {
+                  //       _messages.add(ChatMessage(text: text, isUser: true));
+                  //       _controller.clear();
+                  //     });
+                  //     ref.read(geminiChatServiceProvider).sendMessage(text, (
+                  //       response,
+                  //     ) {
+                  //       setState(() {
+                  //         _messages.add(
+                  //           ChatMessage(text: response, isUser: false),
+                  //         );
+                  //       });
+                  //     });
+                  //   }
+                  // },
                   onPressed: () {
                     final text = _controller.text.trim();
                     if (text.isNotEmpty) {
@@ -254,13 +328,29 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         _messages.add(ChatMessage(text: text, isUser: true));
                         _controller.clear();
                       });
+
+                      setState(() {
+                        _messages.add(
+                          ChatMessage(text: 'Loading...', isUser: false),
+                        );
+                      });
+
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        _scrollToBottom();
+                      });
+
                       ref.read(geminiChatServiceProvider).sendMessage(text, (
                         response,
                       ) {
                         setState(() {
+                          _messages.removeLast();
                           _messages.add(
                             ChatMessage(text: response, isUser: false),
                           );
+                        });
+
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          _scrollToBottom();
                         });
                       });
                     }
@@ -274,11 +364,30 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     );
   }
 
+  // final ScrollController _scrollController = ScrollController();
+
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
   @override
   void dispose() {
+    _scrollController.dispose();
     _controller.dispose();
     super.dispose();
   }
+
+  // @override
+  // void dispose() {
+  //   _controller.dispose();
+  //   super.dispose();
+  // }
 }
 
 class ChatMessage {

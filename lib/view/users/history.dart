@@ -1,67 +1,237 @@
 import 'package:flutter/material.dart';
 import 'package:hajjhealth/view/users/Form/form_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-class HistoryScreen extends StatelessWidget {
+class HistoryScreen extends StatefulWidget {
   const HistoryScreen({Key? key}) : super(key: key);
+
+  @override
+  _HistoryScreenState createState() => _HistoryScreenState();
+}
+
+class _HistoryScreenState extends State<HistoryScreen> {
+  // Firebase instances
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseDatabase _database = FirebaseDatabase.instanceFor(
+    app: Firebase.app(),
+    databaseURL:
+        'https://hajjhealth-app-default-rtdb.asia-southeast1.firebasedatabase.app',
+  );
+
+  // Color static
+  final Color darkBlue = Color.fromARGB(255, 91, 153, 246);
+
+  String pastHistory = '';
+  String familyHistory = '';
+  String socialHistory = '';
+  bool isLoading = true;
+  bool hasCompleteData = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchMedicalHistory();
+  }
+
+  Future<void> _fetchMedicalHistory() async {
+    try {
+      final pastHistoryRef = _database.ref('past_history');
+      final familyHistoryRef = _database.ref('family_history');
+      final socialHistoryRef = _database.ref('social_history');
+
+      final pastSnapshot = await pastHistoryRef.limitToLast(1).get();
+      final familySnapshot = await familyHistoryRef.limitToLast(1).get();
+      final socialSnapshot = await socialHistoryRef.limitToLast(1).get();
+
+      String pastHistoryText = '';
+      String familyHistoryText = '';
+      String socialHistoryText = '';
+
+      // Past History
+      if (pastSnapshot.exists) {
+        Map<dynamic, dynamic> data =
+            pastSnapshot.value as Map<dynamic, dynamic>;
+        String key = data.keys.first;
+        Map<dynamic, dynamic> historyData = data[key];
+        List<dynamic> historyItems = historyData['historyItems'] ?? [];
+
+        pastHistoryText =
+            historyItems.isEmpty
+                ? 'No medical history recorded.'
+                : 'The patient has the following conditions: ${historyItems.join(", ")}.';
+      } else {
+        pastHistoryText = 'No medical history recorded.';
+      }
+
+      // Family History
+      if (familySnapshot.exists) {
+        Map<dynamic, dynamic> data =
+            familySnapshot.value as Map<dynamic, dynamic>;
+        String key = data.keys.first;
+        Map<dynamic, dynamic> familyData = data[key];
+        List<dynamic> familyItems = familyData['conditions'] ?? [];
+
+        familyHistoryText =
+            familyItems.isEmpty
+                ? 'No significant hereditary conditions.'
+                : 'Family history includes: ${familyItems.join(", ")}.';
+      } else {
+        familyHistoryText = 'No family history recorded.';
+      }
+
+      // Social History
+      if (socialSnapshot.exists) {
+        Map<dynamic, dynamic> data =
+            socialSnapshot.value as Map<dynamic, dynamic>;
+        String key = data.keys.first;
+        Map<dynamic, dynamic> socialData = data[key];
+
+        String smokingStatus = socialData['smoking'] ?? 'Unknown';
+        String alcoholStatus = socialData['alcohol'] ?? 'Unknown';
+
+        socialHistoryText =
+            'Smoking status: $smokingStatus. Alcohol consumption: $alcoholStatus.';
+      } else {
+        socialHistoryText = 'No social history recorded.';
+      }
+
+      setState(() {
+        pastHistory ='$pastHistoryText';
+        familyHistory ='$familyHistoryText';
+        socialHistory ='$socialHistoryText';
+      });
+    } catch (e) {
+      print('Error fetching medical history: $e');
+      setState(() {
+        pastHistory = 'Error loading medical history.';
+        familyHistory = 'Error loading medical history.';
+        socialHistory = 'Error loading medical history.';
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFFE8F9FF),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Banner with doctor illustration
-                _buildBanner(context),
-
-                const SizedBox(height: 20),
-
-                // Medical History Title
-                Text(
-                  'Medical History',
-                  style: GoogleFonts.poppins(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-                // Past History Card
-                _buildHistoryCard(
-                  context,
-                  'Past History',
-                  'Contains information about your previous medical conditions, surgeries, and treatments.',
-                  () => _navigateToForm(context, 'Past History'),
-                ),
-
-                const SizedBox(height: 16),
-
-                // Family History Card
-                _buildHistoryCard(
-                  context,
-                  'Family History',
-                  'Information about medical conditions that run in your family.',
-                  () => _navigateToForm(context, 'Family History'),
-                ),
-
-                const SizedBox(height: 16),
-
-                // Social History Card
-                _buildHistoryCard(
-                  context,
-                  'Social History',
-                  'Information about your lifestyle, habits, and social factors that may affect your health.',
-                  () => _navigateToForm(context, 'Social History'),
-                ),
-              ],
-            ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFE8F9FF), Colors.white],
           ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const SizedBox(height: 60),
+
+            const Text(
+              "Medical History",
+              style: TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+
+            // Past History Card
+            Card(
+              color: Colors.white,
+              margin: EdgeInsets.all(16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              elevation: 0.4,
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Past History',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: darkBlue,
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                    Text(
+                      pastHistory,
+                      style: TextStyle(fontSize: 14, height: 1.5),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // Family History Card
+            Card(
+              color: Colors.white,
+              margin: EdgeInsets.all(16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              elevation: 0.4,
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Family History',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: darkBlue,
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                    Text(
+                      familyHistory,
+                      style: TextStyle(fontSize: 14, height: 1.5),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // Social History
+            Card(
+              color: Colors.white,
+              margin: EdgeInsets.all(16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              elevation: 0.4,
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Social History',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: darkBlue,
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                    Text(
+                      socialHistory,
+                      style: TextStyle(fontSize: 14, height: 1.5),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -76,7 +246,7 @@ class HistoryScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.5),
+            color: Colors.grey.withOpacity(0.3),
             spreadRadius: 1,
             blurRadius: 3,
             offset: const Offset(0, 1),
@@ -112,7 +282,7 @@ class HistoryScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(14),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.grey.withOpacity(0.5),
+                  color: Colors.grey.withOpacity(0.3),
                   spreadRadius: 1,
                   blurRadius: 3,
                   offset: const Offset(0, 1),
@@ -150,20 +320,20 @@ class HistoryScreen extends StatelessWidget {
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(20),
         clipBehavior: Clip.none,
-        elevation: 3,
+        elevation: 0.4,
         child: InkWell(
           onTap: onTap,
           splashColor: Colors.blue.withOpacity(0.1),
           highlightColor: Colors.blue.withOpacity(0.05),
           child: Stack(
-          children: [
-            Container(
-              width: MediaQuery.of(context).size.width * 0.9, // Lebar card
-              height: 150, // Tinggi card
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-              ),
+            children: [
+              Container(
+                width: MediaQuery.of(context).size.width * 0.9, // Lebar card
+                height: 150, // Tinggi card
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -309,9 +479,10 @@ class HistoryScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black26,
-                  blurRadius: 10.0,
-                  offset: const Offset(0.0, 10.0),
+                  color: Colors.grey.withOpacity(0.2),
+                  blurRadius: 0,
+                  spreadRadius: 0.1,
+                  offset: const Offset(0, 1),
                 ),
               ],
             ),
@@ -369,5 +540,3 @@ class HistoryScreen extends StatelessWidget {
     );
   }
 }
-
-

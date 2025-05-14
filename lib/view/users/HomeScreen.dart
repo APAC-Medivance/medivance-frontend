@@ -23,142 +23,158 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: backgroundColor,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(padding: EdgeInsets.only(top: 30)),
-              // Header
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  CircleAvatar(
-                    backgroundImage: NetworkImage(
-                      "https://i.pravatar.cc/150?img=3",
-                    ),
-                    radius: 20,
-                  ),
-                  InkWell(
-                    onTap: () async {
-                      await FirebaseAuth.instance.signOut();
-                      Navigator.pushReplacementNamed(
-                        context,
-                        '/login',
-                      ); // Pastikan route '/login' ada
-                    },
-                    borderRadius: BorderRadius.circular(20),
-                    child: Padding(
-                      padding: const EdgeInsets.all(
-                        8.0,
-                      ), // biar area klik-nya lebih besar
-                      child: Icon(Icons.logout, color: Colors.red),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 30),
-              Text('Hello,', style: TextStyle(fontSize: 22)),
-              Text(
-                '${displayName ?? "Loading ..."}',
-                style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 20),
-              // Card
-              Container(
-                padding: EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.5),
-                      blurRadius: 5,
-                      spreadRadius: 2,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Row(
+      // backgroundColor: backgroundColor,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+            Color(0xFFE8F9FF),
+            Colors.white
+          ])
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(padding: EdgeInsets.only(top: 30)),
+                // Header
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Stay health!',
-                            style: TextStyle(
-                              fontSize: 19,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          SizedBox(height: 6),
-                          Text(
-                            'Schedule an e-visit and discuss the plan with a doctor.',
-                            style: TextStyle(fontSize: 17),
-                          ),
-                        ],
+                    CircleAvatar(
+                      backgroundImage: NetworkImage(
+                        "https://i.pravatar.cc/150?img=3",
+                      ),
+                      radius: 20,
+                    ),
+                    InkWell(
+                      onTap: () async {
+                        await FirebaseAuth.instance.signOut();
+                        Navigator.pushReplacementNamed(
+                          context,
+                          '/login',
+                        ); // Pastikan route '/login' ada
+                      },
+                      borderRadius: BorderRadius.circular(20),
+                      child: Padding(
+                        padding: const EdgeInsets.all(
+                          8.0,
+                        ), // biar area klik-nya lebih besar
+                        child: Icon(Icons.logout, color: Colors.black),
                       ),
                     ),
-                    SizedBox(width: 10),
-                    Image.asset(
-                      'assets/img/nurse.png',
-                      width: 150,
-                      height: 150,
-                    ),
                   ],
                 ),
-              ),
-              SizedBox(height: 20),
-              Text(
-                'What do you need?',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-              ),
-              SizedBox(height: 30),
-              // Menu Grid
-              Expanded(
-                child: GridView.count(
-                  crossAxisCount: 3,
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
-                  children: [
-                    buildMenuItem(
-                      context,
-                      Icons.assignment,
-                      "MediTory",
-                      "/meditory",
-                    ),
-                    buildMenuItem(
-                      context,
-                      Icons.location_on,
-                      "MediLoc",
-                      "/mediloc",
-                    ),
-                    buildMenuItem(
-                      context,
-                      Icons.chat_bubble_outline,
-                      "MediBot",
-                      "/medibot",
-                    ),
-                    buildMenuItem(context, Icons.call, "MediCall", "/medicall"),
-                    buildMenuItem(
-                      context,
-                      Icons.card_giftcard,
-                      "MediHajj",
-                      "/medihajj",
-                    ),
-                    buildMenuItem(
-                      context,
-                      Icons.info_outline,
-                      "About",
-                      "/about",
-                    ),
-                  ],
+                SizedBox(height: 30),
+                Text('Hello,', style: TextStyle(fontSize: 22)),
+                Text(
+                  '${displayName ?? "Loading ..."}',
+                  style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
                 ),
-              ),
-            ],
+                SizedBox(height: 20),
+                // Card
+                Container(
+                  padding: EdgeInsets.only(left: 15),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.2),
+                        blurRadius: 0,
+                        spreadRadius: 0.1,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        flex: 3,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Stay health!',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(height: 6),
+                            Text(
+                              'Schedule an e-visit and discuss the plan with a doctor.',
+                              style: TextStyle(fontSize: 14),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(width: 5),
+                      Expanded(
+                        flex: 2,
+                        child: Image.asset(
+                          'assets/img/nurse.png',
+                          width: 150,
+                          height: 150,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'What do you need?',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                ),
+                SizedBox(height: 30),
+                // Menu Grid
+                Expanded(
+                  child: GridView.count(
+                    crossAxisCount: 3,
+                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 16,
+                    children: [
+                      buildMenuItem(
+                        context,
+                        Icons.assignment,
+                        "MediTory",
+                        "/meditory",
+                      ),
+                      buildMenuItem(
+                        context,
+                        Icons.location_on,
+                        "MediLoc",
+                        "/mediloc",
+                      ),
+                      buildMenuItem(
+                        context,
+                        Icons.chat_bubble_outline,
+                        "MediBot",
+                        "/medibot",
+                      ),
+                      buildMenuItem(context, Icons.call, "MediCall", "/medicall"),
+                      buildMenuItem(
+                        context,
+                        Icons.card_giftcard,
+                        "MediHajj",
+                        "/medihajj",
+                      ),
+                      buildMenuItem(
+                        context,
+                        Icons.info_outline,
+                        "About",
+                        "/about",
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -177,10 +193,10 @@ class _HomeScreenState extends State<HomeScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.5),
-            blurRadius: 1,
-            spreadRadius: 1,
-            offset: const Offset(0, 2),
+            color: Colors.grey.withOpacity(0.2),
+            blurRadius: 0,
+            spreadRadius: 0.1,
+            offset: const Offset(0, 1),
           ),
         ],
       ),
@@ -192,7 +208,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 50, color: Colors.blue),
+            Icon(icon, size: 45, color: Colors.blue),
             SizedBox(height: 8),
             Text(
               label,

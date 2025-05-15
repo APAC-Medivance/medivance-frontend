@@ -16,7 +16,7 @@ class HealthService {
     final List<HealthDataType> types = [
       HealthDataType.HEART_RATE,
       HealthDataType.BLOOD_OXYGEN,
-      HealthDataType.BODY_TEMPERATURE,
+      HealthDataType.BODY_TEMPERATURE
     ];
     
     final List<HealthDataAccess> permissions = [

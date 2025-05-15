@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'dart:math' as math;
-import 'package:fl_chart/fl_chart.dart';
-import 'package:intl/intl.dart';
+import 'package:hajjhealth/services/health_api.dart';
+import 'package:health/health.dart';
 
 class HealthMetricsScreen extends StatefulWidget {
   const HealthMetricsScreen({Key? key}) : super(key: key);
@@ -15,72 +14,34 @@ class _HealthMetricsScreenState extends State<HealthMetricsScreen> {
   String selectedPeriod = 'Hari Ini';
   final List<String> periods = ['Hari Ini', '7 Hari', '30 Hari'];
 
-  // Mock data for health metrics
-  final Map<String, Map<String, dynamic>> healthMetrics = {
-    'Heart Rate': {
-      'value': '78',
-      'unit': 'bpm',
-      'icon': Icons.favorite,
-      'color': Colors.red,
-      'data': [68, 72, 76, 80, 75, 78, 82, 79],
-      'normal': '60-100',
-      'description': 'Detak jantung normal dalam keadaan istirahat',
-    },
-    'Temperature': {
-      'value': '36.7',
-      'unit': '°C',
-      'icon': Icons.thermostat,
-      'color': Colors.orange,
-      'data': [36.5, 36.6, 36.7, 36.8, 36.7, 36.6, 36.7, 36.8],
-      'normal': '36.1-37.2',
-      'description': 'Suhu tubuh dalam kisaran normal',
-    },
-    'SpO2': {
-      'value': '98',
-      'unit': '%',
-      'icon': Icons.air,
-      'color': Colors.blue,
-      'data': [97, 98, 99, 98, 97, 98, 99, 98],
-      'normal': '95-100',
-      'description': 'Kadar oksigen darah dalam kisaran normal',
-    },
-    'Blood Pressure': {
-      'value': '120/80',
-      'unit': 'mmHg',
-      'icon': Icons.speed,
-      'color': Colors.purple,
-      'data': [
-        {'systolic': 120, 'diastolic': 80},
-        {'systolic': 118, 'diastolic': 78},
-        {'systolic': 122, 'diastolic': 82},
-        {'systolic': 119, 'diastolic': 79},
-        {'systolic': 121, 'diastolic': 81},
-        {'systolic': 120, 'diastolic': 80},
-        {'systolic': 118, 'diastolic': 79},
-        {'systolic': 122, 'diastolic': 81},
-      ],
-      'normal': '120/80',
-      'description': 'Tekanan darah stabil dalam kisaran normal',
-    }
-  };
+  final HealthService _healthService = HealthService();
 
-  int _selectedIndex = 1;
+  List<HealthDataPoint> _heartRateData = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _initHealthData();
+  }
+
+  Future<void> _initHealthData() async {
+    final authorized = await _healthService.authorize();
+    if (authorized) {
+      final data = await _healthService.fetchData(HealthDataType.HEART_RATE);
+      setState(() {
+        _heartRateData = data;
+      });
+      print("Authorized status : $authorized");
+      print("Heart Rate data : $_heartRateData");
+    } else {
+      // Handle authorization failure
+      print("Authorized status : $authorized");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: AppBar(
-      //   elevation: 0,
-      //   backgroundColor: Colors.transparent,
-      //   title: const Text(
-      //     'Health Statistics',
-      //     style: TextStyle(
-      //       fontSize: 28,
-      //       fontWeight: FontWeight.bold,
-      //       color: Colors.black,
-      //     ),
-      //   )
-      // ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(

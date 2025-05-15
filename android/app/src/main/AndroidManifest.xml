@@ -2,6 +2,8 @@
     <uses-permission android:name="android.permission.health.READ_HEART_RATE"/>
     <uses-permission android:name="android.permission.health.WRITE_HEART_RATE"/>
     <uses-permission android:name="android.permission.health.READ_HEALTH_DATA"/>
+    <uses-permission android:name="android.permission.health.READ_HEALTH_DATA_VARIABLE_RMSSD"/>
+    <uses-permission android:name="android.permission.health.WRITE_HEALTH_DATA_VARIABLE_RMSSD"/>
     <uses-permission android:name="android.permission.health.READ_HEALTH_DATA_HISTORY"/>
     <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
@@ -11,6 +13,7 @@
     <uses-permission android:name="android.permission.health.READ_ACTIVE_ENERGY_BURNED"/>
     <uses-permission android:name="android.permission.health.READ_BODY_TEMPERATURE"/>
     <uses-permission android:name="android.permission.health.READ_OXYGEN_SATURATION"/>
+    <uses-permission android:name="android.permission.health.WRITE_OXYGEN_SATURATION"/>
 
     <application
         android:label="hajjhealth"

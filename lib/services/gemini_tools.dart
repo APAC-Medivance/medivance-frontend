@@ -58,8 +58,86 @@ class GeminiTools {
     },
   );
 
+  FunctionDeclaration get fetchFamilyHistoryFuncDecl => FunctionDeclaration(
+    'fetch_family_history',
+    'Fetch the logged-in user\'s family health history for prompt tuning.',
+    parameters: {
+      'relation': Schema.string(
+        description: 'The relation to the user (e.g., father, mother).',
+      ),
+      'condition': Schema.string(
+        description: 'The medical condition of the family member.',
+      ),
+      'diagnosisYear': Schema.string(
+        description: 'The year the condition was diagnosed.',
+      ),
+      'medication': Schema.string(
+        description: 'The medication prescribed for the condition.',
+      ),
+    },
+  );
+
+  FunctionDeclaration get fetchPastHistoryFuncDecl => FunctionDeclaration(
+    'fetch_past_history',
+    'Fetch the logged-in user\'s past health history for prompt tuning.',
+    parameters: {
+      'historyItems': Schema.array(
+        items: Schema.string(
+          description: 'A past health condition of the user.',
+        ),
+        description: 'A list of past health conditions of the user.',
+      ),
+      'timestamp': Schema.string(
+        description: 'The timestamp when the past health history was recorded.',
+      ),
+    },
+  );
+
+  FunctionDeclaration get fetchSocialHistoryFuncDecl => FunctionDeclaration(
+    'fetch_social_history',
+    'Fetch the logged-in user\'s social health history for prompt tuning.',
+    parameters: {
+      'alcoholType': Schema.string(
+        description: 'The type of alcohol consumed by the user.',
+      ),
+      'cigarettesPerDay': Schema.integer(
+        description: 'The number of cigarettes smoked per day.',
+      ),
+      'consumesAlcohol': Schema.boolean(
+        description: 'Whether the user consumes alcohol.',
+      ),
+      'drinksPerWeek': Schema.integer(
+        description: 'The number of alcoholic drinks consumed per week.',
+      ),
+      'isSmoker': Schema.boolean(description: 'Whether the user is a smoker.'),
+      'mealsPerDay': Schema.integer(
+        description: 'The number of meals consumed per day.',
+      ),
+      'sanitation': Schema.string(
+        description: 'The sanitation condition of the user.',
+      ),
+      'timestamp': Schema.string(
+        description: 'The timestamp when the social history was recorded.',
+      ),
+      'ventilation': Schema.string(
+        description: 'The ventilation condition of the user\'s environment.',
+      ),
+      'workplace': Schema.string(
+        description: 'The type of workplace of the user.',
+      ),
+      'yearsOfSmoking': Schema.integer(
+        description: 'The number of years the user has been smoking.',
+      ),
+    },
+  );
+
   List<Tool> get tools => [
-    Tool.functionDeclarations([fetchUserDataFuncDecl]),
+    Tool.functionDeclarations([
+      fetchUserDataFuncDecl,
+      fetchFamilyHistoryFuncDecl,
+      fetchPastHistoryFuncDecl,
+      fetchSocialHistoryFuncDecl,
+    ]),
   ];
 
   Future<Map<String, Object?>> handleFunctionCall(
@@ -71,6 +149,9 @@ class GeminiTools {
 
     return switch (functionName) {
       'fetch_user_data' => await handleFetchUserData(arguments),
+      'fetch_family_history' => await handleFetchFamilyHistory(arguments),
+      'fetch_past_history' => await handleFetchPastHistory(arguments),
+      'fetch_social_history' => await handleFetchSocialHistory(arguments),
       _ => handleUnknownFunction(functionName),
     };
   }
@@ -79,16 +160,13 @@ class GeminiTools {
     Map<String, Object?> arguments,
   ) async {
     try {
-      // Mendapatkan user yang sedang login
       final User? currentUser = _auth.currentUser;
       if (currentUser == null) {
         throw Exception('No user is currently logged in.');
       }
 
-      // Mendapatkan UserID
       final String userId = currentUser.uid;
 
-      // Mengakses data dari Firebase Realtime Database
       final DatabaseReference userRef = _database.ref('user_profiles/$userId');
       final DataSnapshot snapshot = await userRef.get();
 
@@ -96,12 +174,10 @@ class GeminiTools {
         throw Exception('User data not found for user ID: $userId');
       }
 
-      // Mengambil data dari snapshot
       final Map<String, dynamic> userData = Map<String, dynamic>.from(
         snapshot.value as Map,
       );
 
-      // Menyusun hasil
       final functionResults = {
         'success': true,
         'data': {
@@ -113,17 +189,162 @@ class GeminiTools {
         },
       };
 
-      // Logging hasil
       final logStateNotifier = ref.read(logStateNotifierProvider.notifier);
       logStateNotifier.logFunctionResults(functionResults);
 
       return functionResults;
     } catch (e) {
-      // Logging error
       final logStateNotifier = ref.read(logStateNotifierProvider.notifier);
       logStateNotifier.logError('Error fetching user data: $e');
 
       return {'success': false, 'reason': 'Error fetching user data: $e'};
+    }
+  }
+
+  Future<Map<String, Object?>> handleFetchFamilyHistory(
+    Map<String, Object?> arguments,
+  ) async {
+    try {
+      final User? currentUser = _auth.currentUser;
+      if (currentUser == null) {
+        throw Exception('No user is currently logged in.');
+      }
+
+      final String userId = currentUser.uid;
+      final DatabaseReference familyHistoryRef = _database.ref(
+        'family_history/-OPrLdqwUMaHDiWL-vuH',
+      );
+      final DataSnapshot snapshot = await familyHistoryRef.get();
+
+      if (!snapshot.exists) {
+        throw Exception('Family history data not found for user ID: $userId');
+      }
+
+      final Map<String, dynamic> familyHistory = Map<String, dynamic>.from(
+        snapshot.value as Map,
+      );
+
+      final functionResults = {
+        'success': true,
+        'data': familyHistory.map((relation, details) {
+          final Map<String, dynamic> detailMap = Map<String, dynamic>.from(
+            details as Map,
+          );
+          return MapEntry(relation, {
+            'relation': relation,
+            'condition': detailMap['condition'] ?? '',
+            'diagnosisYear': detailMap['diagnosisYear']?.toString() ?? '',
+            'medication': detailMap['medication'] ?? '',
+          });
+        }),
+      };
+
+      final logStateNotifier = ref.read(logStateNotifierProvider.notifier);
+      logStateNotifier.logFunctionResults(functionResults);
+
+      return functionResults;
+    } catch (e) {
+      final logStateNotifier = ref.read(logStateNotifierProvider.notifier);
+      logStateNotifier.logError('Error fetching family history: $e');
+      return {'success': false, 'reason': 'Error fetching family history: $e'};
+    }
+  }
+
+  Future<Map<String, Object?>> handleFetchPastHistory(
+    Map<String, Object?> arguments,
+  ) async {
+    try {
+      final User? currentUser = _auth.currentUser;
+      if (currentUser == null) {
+        throw Exception('No user is currently logged in.');
+      }
+
+      final String userId = currentUser.uid;
+      final DatabaseReference pastHistoryRef = _database.ref(
+        'past_history/-OPyyWp2KffEG6f_pJvs',
+      );
+      final DataSnapshot snapshot = await pastHistoryRef.get();
+
+      if (!snapshot.exists) {
+        throw Exception('Past history data not found for user ID: $userId');
+      }
+
+      final Map<String, dynamic> pastHistory = Map<String, dynamic>.from(
+        snapshot.value as Map,
+      );
+
+      final List<Map<String, Object?>> historyList =
+          pastHistory.entries.map((entry) {
+            final Map<String, dynamic> details = Map<String, dynamic>.from(
+              entry.value as Map,
+            );
+            return {
+              'historyItems': List<String>.from(details['historyItems'] ?? []),
+              'timestamp': details['timestamp']?.toString() ?? '',
+            };
+          }).toList();
+
+      final functionResults = {'success': true, 'data': historyList};
+
+      final logStateNotifier = ref.read(logStateNotifierProvider.notifier);
+      logStateNotifier.logFunctionResults(functionResults);
+
+      return functionResults;
+    } catch (e) {
+      final logStateNotifier = ref.read(logStateNotifierProvider.notifier);
+      logStateNotifier.logError('Error fetching past history: $e');
+      return {'success': false, 'reason': 'Error fetching past history: $e'};
+    }
+  }
+
+  Future<Map<String, Object?>> handleFetchSocialHistory(
+    Map<String, Object?> arguments,
+  ) async {
+    try {
+      final User? currentUser = _auth.currentUser;
+      if (currentUser == null) {
+        throw Exception('No user is currently logged in.');
+      }
+
+      final String userId = currentUser.uid;
+      final DatabaseReference socialHistoryRef = _database.ref(
+        'social_history/-OPrUWODAm4-9BWqqjCd',
+      );
+      final DataSnapshot snapshot = await socialHistoryRef.get();
+
+      if (!snapshot.exists) {
+        throw Exception('Social history data not found for user ID: $userId');
+      }
+
+      final Map<String, dynamic> socialHistory = Map<String, dynamic>.from(
+        snapshot.value as Map,
+      );
+
+      final functionResults = {
+        'success': true,
+        'data': {
+          'alcoholType': socialHistory['alcoholType'] ?? '',
+          'cigarettesPerDay': socialHistory['cigarettesPerDay'] ?? 0,
+          'consumesAlcohol': socialHistory['consumesAlcohol'] ?? false,
+          'drinksPerWeek': socialHistory['drinksPerWeek'] ?? 0,
+          'isSmoker': socialHistory['isSmoker'] ?? false,
+          'mealsPerDay': socialHistory['mealsPerDay'] ?? 0,
+          'sanitation': socialHistory['sanitation'] ?? '',
+          'timestamp': socialHistory['timestamp']?.toString() ?? '',
+          'ventilation': socialHistory['ventilation'] ?? '',
+          'workplace': socialHistory['workplace'] ?? '',
+          'yearsOfSmoking': socialHistory['yearsOfSmoking'] ?? 0,
+        },
+      };
+
+      final logStateNotifier = ref.read(logStateNotifierProvider.notifier);
+      logStateNotifier.logFunctionResults(functionResults);
+
+      return functionResults;
+    } catch (e) {
+      final logStateNotifier = ref.read(logStateNotifierProvider.notifier);
+      logStateNotifier.logError('Error fetching social history: $e');
+      return {'success': false, 'reason': 'Error fetching social history: $e'};
     }
   }
 

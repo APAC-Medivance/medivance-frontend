@@ -117,10 +117,6 @@ class GeminiChatService {
         );
 
         final responseText = functionResultResponse.text;
-        // if (responseText != null) {
-        //   logStateNotifier.logLlmText(responseText);
-        //   chatStateNotifier.appendToMessage(llmMessage.id, responseText);
-        // }
         if (responseText != null) {
           logStateNotifier.logLlmText(responseText);
           chatStateNotifier.appendToMessage(llmMessage.id, responseText);

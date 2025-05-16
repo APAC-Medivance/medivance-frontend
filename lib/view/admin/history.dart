@@ -1,484 +1,310 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'dart:math' as math;
-import 'package:fl_chart/fl_chart.dart';
+import 'dart:convert';
+import 'dart:io';
 
-class OverviewScreen extends StatelessWidget {
+import 'package:flutter/material.dart';
+import 'dart:math' as math;
+import 'package:hajjhealth/services/health_api.dart';
+import 'package:health/health.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:flutter/foundation.dart';
+
+class OverviewScreen extends StatefulWidget {
   const OverviewScreen({Key? key}) : super(key: key);
+
+  @override
+  State<OverviewScreen> createState() => _OverviewScreenState();
+}
+
+class _OverviewScreenState extends State<OverviewScreen> {
+  String selectedPeriod = 'Hari Ini';
+  final List<String> periods = ['Hari Ini', '7 Hari', '30 Hari'];
+
+  final HealthService _healthService = HealthService();
+
+  Map<String, dynamic>? _healthData;
+
+  List<dynamic> _heartRate = [];
+  List<dynamic> _bloodOxygen = [];
+  List<dynamic> _temperature = [];
+
+  double? _heartRateNow;
+  double? _bloodOxygenNow;
+  double? _temperatureNow;
+
+  @override
+  void initState() {
+    super.initState();
+    _initHealthData();
+  }
+
+  Future<void> _initHealthData() async {
+    final authorized = await _healthService.authorize();
+    if (authorized) {
+      final hrData = await _healthService.fetchData(HealthDataType.HEART_RATE);
+      final spo2Data = await _healthService.fetchData(HealthDataType.BLOOD_OXYGEN);
+      final tempData = await _healthService.fetchData(HealthDataType.BODY_TEMPERATURE);
+
+      // Convert data to JSON and save
+      await _saveHealthDataToJson(hrData, spo2Data, tempData);
+
+      print("Authorized status : $authorized");
+      // print("Heart Rate data : $_heartRateData");
+      // print("SpO2 Data : $_bloodOxygenData");
+      // print("Temperature Data : $_tempData");
+    } else {
+      // Handle authorization failure
+      print("Authorized status : $authorized");
+    }
+  }
+
+  Future<void> _saveHealthDataToJson(
+    List<HealthDataPoint> heartRateData,
+    List<HealthDataPoint> bloodOxygenData,
+    List<HealthDataPoint> tempData,
+    ) async {
+    try {
+      // Convert HealthDataPoint lists into a serializable map
+      Map<String, dynamic> healthData = {
+        "heart_rate": heartRateData.map((e) => e.toJson()).toList(),
+        "blood_oxygen": bloodOxygenData.map((e) => e.toJson()).toList(),
+        "temperature": tempData.map((e) => e.toJson()).toList(),
+      };
+
+      final heartRate = healthData['heart_rate'];
+      final bloodOxygen = healthData['blood_oxygen'];
+      final temperature = healthData['temperature'];
+
+      List<dynamic> heartRateNumeric = heartRate.map((data) => data['value']['numericValue']).toList();
+      List<dynamic> bloodOxygenNumeric = bloodOxygen.map((data) => data['value']['numericValue']).toList();
+      List<dynamic> temperatureNumeric = temperature.map((data) => data['value']['numericValue']).toList();
+
+      setState(() {
+        _heartRate = heartRateNumeric.isEmpty ? [118, 110, 90, 95, 90, 100, 102, 105] : heartRateNumeric;
+        _bloodOxygen = bloodOxygenNumeric.isEmpty ? [95, 97, 96, 96, 96, 97] : bloodOxygenNumeric;
+        _temperature = temperatureNumeric.isEmpty ? [36, 35, 35, 34, 32, 32, 31] : temperatureNumeric;
+
+        _heartRateNow = _heartRate.isEmpty ? 1 : (_heartRate[_heartRate.length - 1] as num).toDouble();
+        _bloodOxygenNow = _bloodOxygen.isEmpty ? 1 : (_bloodOxygen[_bloodOxygen.length - 1] as num).toDouble();
+        _temperatureNow = _temperature.isEmpty ? 1 : (_temperature[_temperature.length - 1] as num).toDouble();
+      });
+    } catch (e) {
+      print("Error saving data: $e");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFE8F9FF),
-      body: SafeArea(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+            Color(0xFFE8F9FF),
+            Colors.white
+          ])
+        ),
         child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header with welcome message
-                _buildWelcomeHeader(context),
-                
-                const SizedBox(height: 20),
-                
-                // Overview statistics cards
-                Text(
-                  'Hajj Health Overview',
-                  style: GoogleFonts.poppins(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                
-                const SizedBox(height: 15),
-                
-                // Statistics cards in a row
-                _buildStatisticsCards(context),
-                
-                const SizedBox(height: 20),
-                
-                // Health trends chart
-                _buildHealthTrendsCard(context),
-                
-                const SizedBox(height: 20),
-                
-                // Patient list section
-                Text(
-                  'Recent Patients',
-                  style: GoogleFonts.poppins(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                
-                const SizedBox(height: 10),
-                
-                // List of patients
-                _buildPatientsList(context),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+                const SizedBox(height: 50),
+                Text("Health Statistics", style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black
+                )),
 
-  Widget _buildWelcomeHeader(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20.0),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color.fromARGB(255, 119, 203, 255), Color.fromARGB(255, 97, 189, 255)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.blue.withOpacity(0.3),
-            spreadRadius: 2,
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Welcome, Dr. Ahmed',
-                  style: GoogleFonts.poppins(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                const SizedBox(height: 20),
+
+                // Statistic Card
+                _buildCard(
+                  'Statistic',
+                  SizedBox(
+                    height: 200,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        (_heartRateNow != null || _bloodOxygenNow != null || _temperatureNow != null)
+                          ? Expanded(
+                              flex: 7,
+                              child: HealthRingsChart(
+                                heartRateNow: _heartRateNow!,
+                                bloodOxygenNow: _bloodOxygenNow!,
+                                temperatureNow: _temperatureNow!,
+                              ),
+                            )
+                          : const SizedBox(), // Atau bisa tambahin CircularProgressIndicator
+                        // Legend
+                        Expanded(
+                          flex: 3,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              _buildLegendItem(Colors.blue.shade300, 'SpO2'),
+                              const SizedBox(height: 10),
+                              _buildLegendItem(Colors.red.shade300, 'HR'),
+                              const SizedBox(height: 10),
+                              _buildLegendItem(Colors.orange.shade300, 'Temp')
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  'Today: ${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}',
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    color: Colors.white.withOpacity(0.9),
+                
+                const SizedBox(height: 16),
+                
+                // Heart Rate Card
+                _buildCard(
+                  'Heart rate',
+                  SizedBox(
+                    height: 100,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: CustomPaint(
+                            key: ValueKey(_heartRate),
+                            painter: HeartRatePainter(_heartRate.map((e) => (e as num).toDouble()).toList()),
+                            child: Container(),
+                          ),
+                        ),
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "  $_heartRateNow bpm",
+                              style: TextStyle(
+                                color: Colors.red,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(width: 20),
+                      ],
+                    ),
                   ),
                 ),
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.25),
-                    borderRadius: BorderRadius.circular(20),
+                
+                const SizedBox(height: 16),
+                
+                // SpO2 Card
+                _buildCard(
+                  'SpO2',
+                  SizedBox(
+                    height: 100,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: CustomPaint(
+                            key: ValueKey(_bloodOxygen),
+                            painter: BloodOxygenPainter(_bloodOxygen.map((e) => (e as num).toDouble()).toList()),
+                            child: Container(),
+                          ),
+                        ),
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "  $_bloodOxygenNow %",
+                              style: TextStyle(
+                                color: Colors.lightBlue,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(width: 20),
+                      ],
+                    ),
                   ),
-                  child: Text(
-                    '5 high-risk patients need attention',
-                    style: GoogleFonts.poppins(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white,
+                ),
+                
+                const SizedBox(height: 16),
+                
+                // Suhu Card
+                _buildCard(
+                  'Temperature',
+                  SizedBox(
+                    height: 100,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: CustomPaint(
+                            key: ValueKey(_temperature),
+                            painter: BloodOxygenPainter(_temperature.map((e) => (e as num).toDouble()).toList()),
+                            child: Container(),
+                          ),
+                        ),
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "  $_temperatureNow C",
+                              style: TextStyle(
+                                color: Colors.orange,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(width: 20),
+                      ],
                     ),
                   ),
                 ),
               ],
             ),
           ),
-          Container(
-            height: 90,
-            width: 90,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Center(
-              child: Image.asset(
-                'assets/img/doctor.png',
-                width: 80,
-                height: 80,
-                fit: BoxFit.contain,
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildStatisticsCards(BuildContext context) {
-    return Row(
-      children: [
-        // Active Pilgrims Card
-        Expanded(
-          child: _buildStatCard(
-            context,
-            'Active Pilgrims',
-            '1,245',
-            Icons.people,
-            Colors.blue,
-            'Total registered pilgrims under medical supervision',
-          ),
-        ),
-        const SizedBox(width: 12),
-        // High Risk Patients Card
-        Expanded(
-          child: _buildStatCard(
-            context,
-            'High Risk',
-            '78',
-            Icons.warning_rounded,
-            Colors.orange,
-            'Pilgrims requiring special medical attention',
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStatCard(
-    BuildContext context,
-    String title,
-    String count,
-    IconData icon,
-    Color color,
-    String tooltip,
-  ) {
+  Widget _buildCard(String title, Widget content) {
     return Container(
-      padding: const EdgeInsets.all(15),
+      width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.2),
-            spreadRadius: 1,
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
+            blurRadius: 0,
+            spreadRadius: 0.1,
+            offset: const Offset(0, 1),
+          )
+        ]
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  icon,
-                  color: color,
-                  size: 20,
-                ),
-              ),
-              InkWell(
-                onTap: () {
-                  _showInfoDialog(context, title, tooltip);
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.withOpacity(0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.info_outline,
-                    color: Colors.lightBlue,
-                    size: 16,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 15),
-          Text(
-            count,
-            style: GoogleFonts.poppins(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-          const SizedBox(height: 5),
-          Text(
-            title,
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              color: Colors.grey[700],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHealthTrendsCard(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
-            spreadRadius: 1,
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (title.isNotEmpty)
               Text(
-                'Health Trends',
-                style: GoogleFonts.poppins(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+                title,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
                   color: Colors.black87,
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  'Last 7 days',
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.blue,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          SizedBox(
-            height: 200,
-            child: LineChart(
-              LineChartData(
-                gridData: FlGridData(
-                  show: true,
-                  drawVerticalLine: false,
-                  horizontalInterval: 20,
-                  getDrawingHorizontalLine: (value) {
-                    return FlLine(
-                      color: Colors.grey.withOpacity(0.2),
-                      strokeWidth: 1,
-                    );
-                  },
-                ),
-                titlesData: FlTitlesData(
-                  show: true,
-                  rightTitles: AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  topTitles: AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      getTitlesWidget: (value, meta) {
-                        const style = TextStyle(
-                          color: Colors.grey,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 10,
-                        );
-                        Widget text;
-                        switch (value.toInt()) {
-                          case 0:
-                            text = const Text('Mon', style: style);
-                            break;
-                          case 1:
-                            text = const Text('Tue', style: style);
-                            break;
-                          case 2:
-                            text = const Text('Wed', style: style);
-                            break;
-                          case 3:
-                            text = const Text('Thu', style: style);
-                            break;
-                          case 4:
-                            text = const Text('Fri', style: style);
-                            break;
-                          case 5:
-                            text = const Text('Sat', style: style);
-                            break;
-                          case 6:
-                            text = const Text('Sun', style: style);
-                            break;
-                          default:
-                            text = const Text('', style: style);
-                            break;
-                        }
-                         return SideTitleWidget(
-                          angle: 0,
-                          space: 4,
-                          child: text,
-                          meta: meta,
-                        );
-                      },
-                    ),
-                  ),
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      interval: 20,
-                      getTitlesWidget: (value, meta) {
-                        return Text(
-                          value.toInt().toString(),
-                          style: const TextStyle(
-                            color: Colors.grey,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 10,
-                          ),
-                        );
-                      },
-                      reservedSize: 28,
-                    ),
-                  ),
-                ),
-                borderData: FlBorderData(
-                  show: false,
-                ),
-                minX: 0,
-                maxX: 6,
-                minY: 0,
-                maxY: 100,
-                lineBarsData: [
-                  // High Risk Patients Line
-                  LineChartBarData(
-                    spots: const [
-                      FlSpot(0, 25),
-                      FlSpot(1, 20),
-                      FlSpot(2, 35),
-                      FlSpot(3, 28),
-                      FlSpot(4, 32),
-                      FlSpot(5, 40),
-                      FlSpot(6, 42),
-                    ],
-                    isCurved: true,
-                    color: Colors.orange,
-                    barWidth: 3,
-                    isStrokeCapRound: true,
-                    dotData: FlDotData(
-                      show: true,
-                      getDotPainter: (spot, percent, barData, index) {
-                        return FlDotCirclePainter(
-                          radius: 4,
-                          color: Colors.white,
-                          strokeWidth: 2,
-                          strokeColor: Colors.orange,
-                        );
-                      },
-                    ),
-                    belowBarData: BarAreaData(
-                      show: true,
-                      color: Colors.orange.withOpacity(0.15),
-                    ),
-                  ),
-                  // New Cases Line
-                  LineChartBarData(
-                    spots: const [
-                      FlSpot(0, 60),
-                      FlSpot(1, 55),
-                      FlSpot(2, 70),
-                      FlSpot(3, 65),
-                      FlSpot(4, 75),
-                      FlSpot(5, 82),
-                      FlSpot(6, 78),
-                    ],
-                    isCurved: true,
-                    color: Colors.blue,
-                    barWidth: 3,
-                    isStrokeCapRound: true,
-                    dotData: FlDotData(
-                      show: true,
-                      getDotPainter: (spot, percent, barData, index) {
-                        return FlDotCirclePainter(
-                          radius: 4,
-                          color: Colors.white,
-                          strokeWidth: 2,
-                          strokeColor: Colors.blue,
-                        );
-                      },
-                    ),
-                    belowBarData: BarAreaData(
-                      show: true,
-                      color: Colors.blue.withOpacity(0.15),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildLegendItem('New Cases', Colors.blue),
-              const SizedBox(width: 24),
-              _buildLegendItem('High Risk', Colors.orange),
-            ],
-          ),
-        ],
+            if (title.isNotEmpty) const SizedBox(height: 10),
+            content,
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildLegendItem(String title, Color color) {
+  Widget _buildLegendItem(Color color, String label) {
     return Row(
       children: [
         Container(
@@ -489,243 +315,271 @@ class OverviewScreen extends StatelessWidget {
             shape: BoxShape.circle,
           ),
         ),
-        const SizedBox(width: 6),
+        const SizedBox(width: 8),
         Text(
-          title,
-          style: GoogleFonts.poppins(
-            fontSize: 12,
-            color: Colors.grey[600],
+          label,
+          style: TextStyle(
+            color: Colors.grey.shade500,
+            fontSize: 14,
           ),
         ),
       ],
     );
   }
+}
 
-  Widget _buildPatientsList(BuildContext context) {
-    // Sample patient data
-    final patients = [
-      {
-        'name': 'Ahmad Khalid',
-        'age': '65',
-        'condition': 'Hypertension',
-        'risk': 'High',
-        'avatar': 'A',
-        'color': Colors.red,
-      },
-      {
-        'name': 'Fatima Hassan',
-        'age': '72',
-        'condition': 'Diabetes Type 2',
-        'risk': 'High',
-        'avatar': 'F',
-        'color': Colors.red,
-      },
-      {
-        'name': 'Mohammed Ali',
-        'age': '45',
-        'condition': 'Asthma',
-        'risk': 'Medium',
-        'avatar': 'M',
-        'color': Colors.amber,
-      },
-      {
-        'name': 'Aisha Rahman',
-        'age': '51',
-        'condition': 'Arthritis',
-        'risk': 'Low',
-        'avatar': 'A',
-        'color': Colors.green,
-      },
-      {
-        'name': 'Omar Farooq',
-        'age': '68',
-        'condition': 'Heart Disease',
-        'risk': 'High',
-        'avatar': 'O',
-        'color': Colors.red,
-      },
+// Custom painters
+
+class HealthRingsChart extends StatelessWidget {
+  final double heartRateNow;
+  final double bloodOxygenNow;
+  final double temperatureNow;
+
+  const HealthRingsChart({Key? key, required this.heartRateNow, required this.bloodOxygenNow, required this.temperatureNow}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      painter: RingsPainter(
+        heartRateNow: heartRateNow,
+        bloodOxygenNow: bloodOxygenNow,
+        temperatureNow: temperatureNow
+      ),
+      child: Container(),
+    );
+  }
+}
+
+class RingsPainter extends CustomPainter {
+  double heartRateNow;
+  double bloodOxygenNow;
+  double temperatureNow;
+
+  RingsPainter({required this.heartRateNow, required this.bloodOxygenNow, required this.temperatureNow});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = math.min(size.width, size.height) / 2.5;
+    
+    // Calculate stroke widths for each ring
+    final strokeWidth = radius * 0.12;
+    final gap = radius * 0.05;
+    
+    // Define rings (from outside to inside)
+    final rings = [
+      _RingData(Colors.blue.shade300, bloodOxygenNow/100, Colors.blue.shade100),
+      _RingData(Colors.red.shade300, heartRateNow/220, Colors.red.shade100),
+      _RingData(Colors.orange.shade300, temperatureNow/100, Colors.orange.shade100)
     ];
-
-    return Column(
-      children: [
-        for (final patient in patients)
-          _buildPatientCard(context, patient),
-      ],
-    );
+    
+    // Draw rings
+    for (int i = 0; i < rings.length; i++) {
+      final currentRadius = radius - (i * (strokeWidth + gap));
+      
+      // Background ring
+      final bgPaint = Paint()
+        ..color = rings[i].backgroundColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = strokeWidth
+        ..strokeCap = StrokeCap.round;
+      
+      canvas.drawCircle(center, currentRadius, bgPaint);
+      
+      // Progress ring
+      final progressPaint = Paint()
+        ..color = rings[i].color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = strokeWidth
+        ..strokeCap = StrokeCap.round;
+      
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: currentRadius),
+        -math.pi / 2, // Start from top
+        2 * math.pi * rings[i].progress, // Sweep angle based on progress
+        false,
+        progressPaint,
+      );
+    }
   }
 
-  Widget _buildPatientCard(BuildContext context, Map<String, dynamic> patient) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 3,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // Avatar
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              color: (patient['color'] as Color).withOpacity(0.2),
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Text(
-                patient['avatar'] as String,
-                style: GoogleFonts.poppins(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: patient['color'] as Color,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 15),
-          // Patient info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      patient['name'] as String,
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: (patient['color'] as Color).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        '${patient['risk']} Risk',
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: patient['color'] as Color,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  'Age: ${patient['age']} | ${patient['condition']}',
-                  style: GoogleFonts.poppins(
-                    fontSize: 13,
-                    color: Colors.grey[600],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Action button
-          InkWell(
-            onTap: () {
-              // Action when patient card is tapped
-            },
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.arrow_forward,
-                color: Colors.blue,
-                size: 20,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
+}
+
+class _RingData {
+  final Color color;
+  final double progress;
+  final Color backgroundColor;
+  
+  _RingData(this.color, this.progress, this.backgroundColor);
+}
+
+class HeartRatePainter extends CustomPainter {
+  final List<double> heartRateNumeric;
+
+  HeartRatePainter(this.heartRateNumeric);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.red.shade400
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
+
+    final path = Path();
+
+    if (heartRateNumeric.isEmpty) return;
+
+    double startX = 0;
+    double maxHeartRate = heartRateNumeric.reduce((a, b) => a > b ? a : b);
+    double minHeartRate = heartRateNumeric.reduce((a, b) => a < b ? a : b);
+
+    double range = maxHeartRate - minHeartRate;
+    if (range == 0) range = 1;
+    maxHeartRate += range * 0.1;
+    minHeartRate -= range * 0.1;
+
+    double yScale = size.height / (maxHeartRate - minHeartRate);
+    double xScale = size.width / (heartRateNumeric.length - 1);
+
+    path.moveTo(startX, size.height - ((heartRateNumeric[0] - minHeartRate) * yScale));
+
+    for (int i = 1; i < heartRateNumeric.length; i++) {
+      double x = startX + (i * xScale);
+      double y = size.height - ((heartRateNumeric[i] - minHeartRate) * yScale);
+      path.lineTo(x, y);
+    }
+
+    canvas.drawPath(path, paint);
   }
 
-  void _showInfoDialog(BuildContext context, String title, String content) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          elevation: 0,
-          backgroundColor: Colors.transparent,
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.rectangle,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black26,
-                  blurRadius: 10.0,
-                  offset: const Offset(0.0, 10.0),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Text(
-                  title,
-                  style: GoogleFonts.poppins(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  content,
-                  style: GoogleFonts.poppins(fontSize: 16),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  style: TextButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                  ),
-                  child: Text(
-                    'Got it',
-                    style: GoogleFonts.poppins(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
+  @override
+  bool shouldRepaint(covariant HeartRatePainter oldDelegate) {
+    return !listEquals(oldDelegate.heartRateNumeric, heartRateNumeric);
   }
+}
+
+class BloodOxygenPainter extends CustomPainter {
+  final List<double> bloodOxygenNumeric;
+
+  BloodOxygenPainter(this.bloodOxygenNumeric);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.lightBlue
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
+
+    final path = Path();
+
+    if (bloodOxygenNumeric.isEmpty) return;
+
+    double startX = 0;
+    double maxHeartRate = bloodOxygenNumeric.reduce((a, b) => a > b ? a : b);
+    double minHeartRate = bloodOxygenNumeric.reduce((a, b) => a < b ? a : b);
+
+    double range = maxHeartRate - minHeartRate;
+    if (range == 0) range = 1;
+    maxHeartRate += range * 0.1;
+    minHeartRate -= range * 0.1;
+
+    double yScale = size.height / (maxHeartRate - minHeartRate);
+    double xScale = size.width / (bloodOxygenNumeric.length - 1);
+
+    path.moveTo(startX, size.height - ((bloodOxygenNumeric[0] - minHeartRate) * yScale));
+
+    for (int i = 1; i < bloodOxygenNumeric.length; i++) {
+      double x = startX + (i * xScale);
+      double y = size.height - ((bloodOxygenNumeric[i] - minHeartRate) * yScale);
+      path.lineTo(x, y);
+    }
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant BloodOxygenPainter oldDelegate) {
+    return !listEquals(oldDelegate.bloodOxygenNumeric, bloodOxygenNumeric);
+  }
+}
+
+class TemperaturePainter extends CustomPainter {
+  final List<double> temperatureNumeric;
+
+  TemperaturePainter(this.temperatureNumeric);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.orange
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
+
+    final path = Path();
+
+    if (temperatureNumeric.isEmpty) return;
+
+    double startX = 0;
+    double maxHeartRate = temperatureNumeric.reduce((a, b) => a > b ? a : b);
+    double minHeartRate = temperatureNumeric.reduce((a, b) => a < b ? a : b);
+
+    double range = maxHeartRate - minHeartRate;
+    if (range == 0) range = 1;
+    maxHeartRate += range * 0.1;
+    minHeartRate -= range * 0.1;
+
+    double yScale = size.height / (maxHeartRate - minHeartRate);
+    double xScale = size.width / (temperatureNumeric.length - 1);
+
+    path.moveTo(startX, size.height - ((temperatureNumeric[0] - minHeartRate) * yScale));
+
+    for (int i = 1; i < temperatureNumeric.length; i++) {
+      double x = startX + (i * xScale);
+      double y = size.height - ((temperatureNumeric[i] - minHeartRate) * yScale);
+      path.lineTo(x, y);
+    }
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant TemperaturePainter oldDelegate) {
+    return !listEquals(oldDelegate.temperatureNumeric, temperatureNumeric);
+  }
+}
+
+class BubblesPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final random = math.Random(42); // Fixed seed for consistency
+    
+    // Generate random bubbles
+    for (int i = 0; i < 20; i++) {
+      final x = random.nextDouble() * size.width;
+      final y = random.nextDouble() * size.height;
+      final radius = 4.0 + random.nextDouble() * 10;
+      
+      final paint = Paint()
+        ..color = Colors.blue.withOpacity(0.3)
+        ..style = PaintingStyle.fill;
+      
+      canvas.drawCircle(Offset(x, y), radius, paint);
+      
+      // Add a highlight to the bubble
+      final highlightPaint = Paint()
+        ..color = Colors.white.withOpacity(0.5)
+        ..style = PaintingStyle.fill;
+      
+      canvas.drawCircle(
+        Offset(x - radius * 0.3, y - radius * 0.3),
+        radius * 0.3,
+        highlightPaint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }

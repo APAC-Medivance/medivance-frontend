@@ -79,9 +79,9 @@ class _HealthMetricsScreenState extends State<HealthMetricsScreen> {
       List<dynamic> temperatureNumeric = temperature.map((data) => data['value']['numericValue']).toList();
 
       setState(() {
-        _heartRate = heartRateNumeric;
-        _bloodOxygen = bloodOxygenNumeric;
-        _temperature = temperatureNumeric;
+        _heartRate = heartRateNumeric.isEmpty ? [1, 1] : heartRateNumeric;
+        _bloodOxygen = bloodOxygenNumeric.isEmpty ? [1, 1] : bloodOxygenNumeric;
+        _temperature = temperatureNumeric.isEmpty ? [1, 1] : temperatureNumeric;
 
         _heartRateNow = _heartRate.isEmpty ? 1 : (_heartRate[_heartRate.length - 1] as num).toDouble();
         _bloodOxygenNow = _bloodOxygen.isEmpty ? 1 : (_bloodOxygen[_bloodOxygen.length - 1] as num).toDouble();
@@ -199,9 +199,29 @@ class _HealthMetricsScreenState extends State<HealthMetricsScreen> {
                   'SpO2',
                   SizedBox(
                     height: 100,
-                    child: CustomPaint(
-                      painter: BubblesPainter(),
-                      size: const Size(double.infinity, 100),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: CustomPaint(
+                            key: ValueKey(_bloodOxygen),
+                            painter: BloodOxygenPainter(_bloodOxygen.map((e) => (e as num).toDouble()).toList()),
+                            child: Container(),
+                          ),
+                        ),
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "  $_bloodOxygenNow %",
+                              style: TextStyle(
+                                color: Colors.lightBlue,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(width: 20),
+                      ],
                     ),
                   ),
                 ),
@@ -210,9 +230,33 @@ class _HealthMetricsScreenState extends State<HealthMetricsScreen> {
                 
                 // Suhu Card
                 _buildCard(
-                  'Suhu',
-                  const SizedBox(
+                  'Temperature',
+                  SizedBox(
                     height: 100,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: CustomPaint(
+                            key: ValueKey(_temperature),
+                            painter: BloodOxygenPainter(_temperature.map((e) => (e as num).toDouble()).toList()),
+                            child: Container(),
+                          ),
+                        ),
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "  $_temperatureNow C",
+                              style: TextStyle(
+                                color: Colors.orange,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(width: 20),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -416,6 +460,95 @@ class HeartRatePainter extends CustomPainter {
   }
 }
 
+class BloodOxygenPainter extends CustomPainter {
+  final List<double> bloodOxygenNumeric;
+
+  BloodOxygenPainter(this.bloodOxygenNumeric);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.lightBlue
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
+
+    final path = Path();
+
+    if (bloodOxygenNumeric.isEmpty) return;
+
+    double startX = 0;
+    double maxHeartRate = bloodOxygenNumeric.reduce((a, b) => a > b ? a : b);
+    double minHeartRate = bloodOxygenNumeric.reduce((a, b) => a < b ? a : b);
+
+    double range = maxHeartRate - minHeartRate;
+    if (range == 0) range = 1;
+    maxHeartRate += range * 0.1;
+    minHeartRate -= range * 0.1;
+
+    double yScale = size.height / (maxHeartRate - minHeartRate);
+    double xScale = size.width / (bloodOxygenNumeric.length - 1);
+
+    path.moveTo(startX, size.height - ((bloodOxygenNumeric[0] - minHeartRate) * yScale));
+
+    for (int i = 1; i < bloodOxygenNumeric.length; i++) {
+      double x = startX + (i * xScale);
+      double y = size.height - ((bloodOxygenNumeric[i] - minHeartRate) * yScale);
+      path.lineTo(x, y);
+    }
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant BloodOxygenPainter oldDelegate) {
+    return !listEquals(oldDelegate.bloodOxygenNumeric, bloodOxygenNumeric);
+  }
+}
+
+class TemperaturePainter extends CustomPainter {
+  final List<double> temperatureNumeric;
+
+  TemperaturePainter(this.temperatureNumeric);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.orange
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
+
+    final path = Path();
+
+    if (temperatureNumeric.isEmpty) return;
+
+    double startX = 0;
+    double maxHeartRate = temperatureNumeric.reduce((a, b) => a > b ? a : b);
+    double minHeartRate = temperatureNumeric.reduce((a, b) => a < b ? a : b);
+
+    double range = maxHeartRate - minHeartRate;
+    if (range == 0) range = 1;
+    maxHeartRate += range * 0.1;
+    minHeartRate -= range * 0.1;
+
+    double yScale = size.height / (maxHeartRate - minHeartRate);
+    double xScale = size.width / (temperatureNumeric.length - 1);
+
+    path.moveTo(startX, size.height - ((temperatureNumeric[0] - minHeartRate) * yScale));
+
+    for (int i = 1; i < temperatureNumeric.length; i++) {
+      double x = startX + (i * xScale);
+      double y = size.height - ((temperatureNumeric[i] - minHeartRate) * yScale);
+      path.lineTo(x, y);
+    }
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant TemperaturePainter oldDelegate) {
+    return !listEquals(oldDelegate.temperatureNumeric, temperatureNumeric);
+  }
+}
 
 class BubblesPainter extends CustomPainter {
   @override

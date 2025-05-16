@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:async';
 
+import 'package:hajjhealth/view/admin/history.dart';
+
 class AdminNotificationScreen extends StatefulWidget {
   const AdminNotificationScreen({Key? key}) : super(key: key);
 
@@ -16,7 +18,7 @@ class _AdminNotificationScreenState extends State<AdminNotificationScreen> {
   // Simulated notifications with SpO2 data
   final List<Map<String, dynamic>> notifications = [
     {
-      'patientName': 'Ahmad Khalid',
+      'patientName': 'Miftahul Arifin',
       'patientId': 'P-7821',
       'message': 'SpO2 level critical',
       'timestamp': DateTime.now().subtract(const Duration(minutes: 5)),
@@ -500,6 +502,10 @@ class _AdminNotificationScreenState extends State<AdminNotificationScreen> {
                   Colors.blue,
                   () {
                     // Action to view patient details
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => OverviewScreen()) 
+                    );
                   },
                 ),
               

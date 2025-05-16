@@ -19,6 +19,7 @@ dependencies:
   fl_chart: ^1.0.0
   health: ^12.2.0
   permission_handler: ^12.0.0+1
+  path_provider: ^2.1.5
 
 dev_dependencies:
   flutter_test:

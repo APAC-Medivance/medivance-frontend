@@ -1,7 +1,12 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import 'package:hajjhealth/services/health_api.dart';
 import 'package:health/health.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:flutter/foundation.dart';
 
 class HealthMetricsScreen extends StatefulWidget {
   const HealthMetricsScreen({Key? key}) : super(key: key);
@@ -16,7 +21,15 @@ class _HealthMetricsScreenState extends State<HealthMetricsScreen> {
 
   final HealthService _healthService = HealthService();
 
-  List<HealthDataPoint> _heartRateData = [];
+  Map<String, dynamic>? _healthData;
+
+  List<dynamic> _heartRate = [];
+  List<dynamic> _bloodOxygen = [];
+  List<dynamic> _temperature = [];
+
+  double? _heartRateNow;
+  double? _bloodOxygenNow;
+  double? _temperatureNow;
 
   @override
   void initState() {
@@ -27,15 +40,55 @@ class _HealthMetricsScreenState extends State<HealthMetricsScreen> {
   Future<void> _initHealthData() async {
     final authorized = await _healthService.authorize();
     if (authorized) {
-      final data = await _healthService.fetchData(HealthDataType.HEART_RATE);
-      setState(() {
-        _heartRateData = data;
-      });
+      final hrData = await _healthService.fetchData(HealthDataType.HEART_RATE);
+      final spo2Data = await _healthService.fetchData(HealthDataType.BLOOD_OXYGEN);
+      final tempData = await _healthService.fetchData(HealthDataType.BODY_TEMPERATURE);
+
+      // Convert data to JSON and save
+      await _saveHealthDataToJson(hrData, spo2Data, tempData);
+
       print("Authorized status : $authorized");
-      print("Heart Rate data : $_heartRateData");
+      // print("Heart Rate data : $_heartRateData");
+      // print("SpO2 Data : $_bloodOxygenData");
+      // print("Temperature Data : $_tempData");
     } else {
       // Handle authorization failure
       print("Authorized status : $authorized");
+    }
+  }
+
+  Future<void> _saveHealthDataToJson(
+    List<HealthDataPoint> heartRateData,
+    List<HealthDataPoint> bloodOxygenData,
+    List<HealthDataPoint> tempData,
+    ) async {
+    try {
+      // Convert HealthDataPoint lists into a serializable map
+      Map<String, dynamic> healthData = {
+        "heart_rate": heartRateData.map((e) => e.toJson()).toList(),
+        "blood_oxygen": bloodOxygenData.map((e) => e.toJson()).toList(),
+        "temperature": tempData.map((e) => e.toJson()).toList(),
+      };
+
+      final heartRate = healthData['heart_rate'];
+      final bloodOxygen = healthData['blood_oxygen'];
+      final temperature = healthData['temperature'];
+
+      List<dynamic> heartRateNumeric = heartRate.map((data) => data['value']['numericValue']).toList();
+      List<dynamic> bloodOxygenNumeric = bloodOxygen.map((data) => data['value']['numericValue']).toList();
+      List<dynamic> temperatureNumeric = temperature.map((data) => data['value']['numericValue']).toList();
+
+      setState(() {
+        _heartRate = heartRateNumeric;
+        _bloodOxygen = bloodOxygenNumeric;
+        _temperature = temperatureNumeric;
+
+        _heartRateNow = _heartRate.isEmpty ? 1 : (_heartRate[_heartRate.length - 1] as num).toDouble();
+        _bloodOxygenNow = _bloodOxygen.isEmpty ? 1 : (_bloodOxygen[_bloodOxygen.length - 1] as num).toDouble();
+        _temperatureNow = _temperature.isEmpty ? 1 : (_temperature[_temperature.length - 1] as num).toDouble();
+      });
+    } catch (e) {
+      print("Error saving data: $e");
     }
   }
 
@@ -75,11 +128,16 @@ class _HealthMetricsScreenState extends State<HealthMetricsScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // Rings chart
-                        const Expanded(
-                          flex: 7,
-                          child: HealthRingsChart(),
-                        ),
+                        (_heartRateNow != null || _bloodOxygenNow != null || _temperatureNow != null)
+                          ? Expanded(
+                              flex: 7,
+                              child: HealthRingsChart(
+                                heartRateNow: _heartRateNow!,
+                                bloodOxygenNow: _bloodOxygenNow!,
+                                temperatureNow: _temperatureNow!,
+                              ),
+                            )
+                          : const SizedBox(), // Atau bisa tambahin CircularProgressIndicator
                         // Legend
                         Expanded(
                           flex: 3,
@@ -111,14 +169,16 @@ class _HealthMetricsScreenState extends State<HealthMetricsScreen> {
                       children: [
                         Expanded(
                           child: CustomPaint(
-                            painter: HeartRatePainter(),
+                            key: ValueKey(_heartRate),
+                            painter: HeartRatePainter(_heartRate.map((e) => (e as num).toDouble()).toList()),
+                            child: Container(),
                           ),
                         ),
-                        const Column(
+                        Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              'bpm',
+                              "  $_heartRateNow bpm",
                               style: TextStyle(
                                 color: Colors.red,
                                 fontSize: 14,
@@ -227,18 +287,32 @@ class _HealthMetricsScreenState extends State<HealthMetricsScreen> {
 // Custom painters
 
 class HealthRingsChart extends StatelessWidget {
-  const HealthRingsChart({Key? key}) : super(key: key);
+  final double heartRateNow;
+  final double bloodOxygenNow;
+  final double temperatureNow;
+
+  const HealthRingsChart({Key? key, required this.heartRateNow, required this.bloodOxygenNow, required this.temperatureNow}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
-      painter: RingsPainter(),
+      painter: RingsPainter(
+        heartRateNow: heartRateNow,
+        bloodOxygenNow: bloodOxygenNow,
+        temperatureNow: temperatureNow
+      ),
       child: Container(),
     );
   }
 }
 
 class RingsPainter extends CustomPainter {
+  double heartRateNow;
+  double bloodOxygenNow;
+  double temperatureNow;
+
+  RingsPainter({required this.heartRateNow, required this.bloodOxygenNow, required this.temperatureNow});
+
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
@@ -250,9 +324,9 @@ class RingsPainter extends CustomPainter {
     
     // Define rings (from outside to inside)
     final rings = [
-      _RingData(Colors.blue.shade300, 0.95, Colors.blue.shade100),
-      _RingData(Colors.red.shade300, 0.8, Colors.red.shade100),
-      _RingData(Colors.orange.shade300, 0.75, Colors.orange.shade100)
+      _RingData(Colors.blue.shade300, bloodOxygenNow/100, Colors.blue.shade100),
+      _RingData(Colors.red.shade300, heartRateNow/220, Colors.red.shade100),
+      _RingData(Colors.orange.shade300, temperatureNow/100, Colors.orange.shade100)
     ];
     
     // Draw rings
@@ -298,49 +372,50 @@ class _RingData {
 }
 
 class HeartRatePainter extends CustomPainter {
+  final List<double> heartRateNumeric;
+
+  HeartRatePainter(this.heartRateNumeric);
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.red.shade300
+      ..color = Colors.red.shade400
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0;
-    
+
     final path = Path();
-    
-    // ECG heart beat pattern
+
+    if (heartRateNumeric.isEmpty) return;
+
     double startX = 0;
-    path.moveTo(startX, size.height / 2);
-    
-    // Create a repeating heart beat pattern
-    for (int i = 0; i < 3; i++) {
-      final segmentWidth = size.width / 3;
-      final x = startX + (i * segmentWidth);
-      
-      // Normal line
-      path.lineTo(x + segmentWidth * 0.2, size.height / 2);
-      
-      // Spike up
-      path.lineTo(x + segmentWidth * 0.3, size.height * 0.2);
-      
-      // Spike down
-      path.lineTo(x + segmentWidth * 0.4, size.height * 0.8);
-      
-      // Spike up again (main peak)
-      path.lineTo(x + segmentWidth * 0.5, size.height * 0.3);
-      
-      // Back to baseline
-      path.lineTo(x + segmentWidth * 0.7, size.height / 2);
-      
-      // Continue baseline
-      path.lineTo(x + segmentWidth, size.height / 2);
+    double maxHeartRate = heartRateNumeric.reduce((a, b) => a > b ? a : b);
+    double minHeartRate = heartRateNumeric.reduce((a, b) => a < b ? a : b);
+
+    double range = maxHeartRate - minHeartRate;
+    if (range == 0) range = 1;
+    maxHeartRate += range * 0.1;
+    minHeartRate -= range * 0.1;
+
+    double yScale = size.height / (maxHeartRate - minHeartRate);
+    double xScale = size.width / (heartRateNumeric.length - 1);
+
+    path.moveTo(startX, size.height - ((heartRateNumeric[0] - minHeartRate) * yScale));
+
+    for (int i = 1; i < heartRateNumeric.length; i++) {
+      double x = startX + (i * xScale);
+      double y = size.height - ((heartRateNumeric[i] - minHeartRate) * yScale);
+      path.lineTo(x, y);
     }
-    
+
     canvas.drawPath(path, paint);
   }
 
   @override
-  bool shouldRepaint(CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant HeartRatePainter oldDelegate) {
+    return !listEquals(oldDelegate.heartRateNumeric, heartRateNumeric);
+  }
 }
+
 
 class BubblesPainter extends CustomPainter {
   @override
